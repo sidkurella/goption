@@ -21,23 +21,33 @@ func (m OptionMonad[T, U]) Return(val T) Option[T] {
 
 // Option type. Either contains a value, or does not.
 type Option[T any] interface {
+	// Returns true if the option has a value.
 	IsSome() bool
+	// Returns true if the option has no value.
 	IsNothing() bool
-
+	// Returns the inner value of the option. Panics if there is no value.
 	Unwrap() T
-	UnwrapOr(T) T
-
+	// Returns the inner value of the option. If there is no value, returns the provided default.
+	UnwrapOr(defaultValue T) T
+	// Gets the inner value of the option. The second value indicates success or failure.
 	Get() (T, bool)
-	Expect(string) T
-
-	IsSomeAnd(func(*T) bool) bool
-	Filter(func(*T) bool) Option[T]
-
-	And(Option[T]) Option[T]
-	AndThen(func(T) Option[T]) Option[T]
-	Or(Option[T]) Option[T]
-	OrElse(func() Option[T]) Option[T]
-	Xor(Option[T]) Option[T]
+	// Returns the inner value of the option. Panics with the provided message if there is no value.
+	Expect(msg string) T
+	// Returns true if there if the option contains a value and the value passes the provided predicate.
+	IsSomeAnd(predicate func(*T) bool) bool
+	// Returns Some[T] if there if the option contains a value and the value passes the provided predicate.
+	// Returns Nothing otherwise.
+	Filter(predicate func(*T) bool) Option[T]
+	// Returns opt2 if both options contain a value.
+	And(opt2 Option[T]) Option[T]
+	// Calls f with the inner value of the option. Returns Nothing if there is no value.
+	AndThen(f func(T) Option[T]) Option[T]
+	// Returns self if the option contains a value. Otherwise, returns opt2.
+	Or(opt2 Option[T]) Option[T]
+	// Returns self if the option contains a value. Otherwise, returns f.
+	OrElse(f func() Option[T]) Option[T]
+	// If exactly one of the options contains a value, returns that option. Otherwise, returns Nothing.
+	Xor(opt2 Option[T]) Option[T]
 }
 
 //=====================================================
