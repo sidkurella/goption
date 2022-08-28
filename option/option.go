@@ -173,6 +173,7 @@ func (n Nothing[T]) Xor(opt2 Option[T]) Option[T] {
 
 //=====================================================
 
+// Returns opt2 if both options contain a value. Otherwise returns Nothing.
 func And[T any, U any](opt1 Option[T], opt2 Option[U]) Option[U] {
 	if opt1.IsNothing() {
 		return Nothing[U]{}
@@ -180,14 +181,45 @@ func And[T any, U any](opt1 Option[T], opt2 Option[U]) Option[U] {
 	return opt2
 }
 
+// Calls f with the inner value of the option. Returns Nothing if there is no value.
 func AndThen[T any, U any](opt1 Option[T], f func(T) Option[U]) Option[U] {
 	return OptionMonad[T, U]{}.Bind(opt1, f)
 }
 
+// Flattens an option of type Option[Option[T]] to just Option[T].
 func Flatten[T any](opt Option[Option[T]]) Option[T] {
 	val, ok := opt.Get()
 	if !ok {
 		return Nothing[T]{}
 	}
 	return val
+}
+
+// Maps the inner value of an option via f. Returns Nothing if there is no value.
+func Map[T any, U any](opt Option[T], f func(T) U) Option[U] {
+	val, ok := opt.Get()
+	if !ok {
+		return Nothing[U]{}
+	}
+	return Some[U]{Value: f(val)}
+}
+
+// Maps the inner value of an option via f. If the option is Nothing, returns the default.
+// Arguments are eagerly evaluated. Consider MapOrElse if you are passing the result of a function call.
+func MapOr[T any, U any](opt Option[T], defaultValue U, f func(T) U) Option[U] {
+	val, ok := opt.Get()
+	if !ok {
+		return Some[U]{Value: defaultValue}
+	}
+	return Some[U]{Value: f(val)}
+}
+
+// Maps the inner value of an option via f. If the option is Nothing, calls defaultFunc to provide a default.
+// defaultFunc() is lazily evaluated.
+func MapOrElse[T any, U any](opt Option[T], defaultFunc func() U, f func(T) U) Option[U] {
+	val, ok := opt.Get()
+	if !ok {
+		return Some[U]{Value: defaultFunc()}
+	}
+	return Some[U]{Value: f(val)}
 }
