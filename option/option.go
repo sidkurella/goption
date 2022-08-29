@@ -2,7 +2,7 @@ package option
 
 import "fmt"
 
-// Implements Monad[Option[T], Option[U], T, U].
+// Implements Monad[Option[T], Option[U], T].
 type OptionMonad[T any, U any] struct {
 }
 
@@ -267,7 +267,7 @@ func MapOrElse[T any, U any](opt Option[T], defaultFunc func() U, f func(T) U) O
 	)
 }
 
-// Match calls someArm if the option is Some[T] and returns that result
+// Match calls someArm if the option is Some[T] and returns that result.
 // It calls nothingArm if the option is Nothing and returns that instead.
 // The two functions must return the same type.
 func Match[T any, U any](opt Option[T], someArm func(Some[T]) U, nothingArm func(Nothing[T]) U) U {
