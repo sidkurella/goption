@@ -1,6 +1,10 @@
 package result
 
-import "github.com/sidkurella/goption/option"
+import (
+	"fmt"
+
+	"github.com/sidkurella/goption/option"
+)
 
 // Implements Monad[Result[T1, E], Result[T2, E], T1].
 type ResultMonad[T1 any, E any, T2 any] struct {
@@ -56,6 +60,8 @@ type Result[T any, E any] interface {
 	UnwrapOr(defaultValue T) T
 	// Returns the contained Ok value. If the result is Err, computes the default from the provided closure.
 	UnwrapOrElse(defaultFunc func(E) T) T
+
+	String() string
 }
 
 //=====================================================
@@ -115,6 +121,10 @@ func (o Ok[T, E]) UnwrapOrElse(_ func(E) T) T {
 	return o.Value
 }
 
+func (o Ok[T, E]) String() string {
+	return fmt.Sprintf("Ok(%v)", o.Value)
+}
+
 //=====================================================
 
 type Err[T any, E any] struct {
@@ -170,6 +180,10 @@ func (e Err[T, E]) UnwrapOr(defaultValue T) T {
 
 func (e Err[T, E]) UnwrapOrElse(f func(E) T) T {
 	return f(e.Value)
+}
+
+func (e Err[T, E]) String() string {
+	return fmt.Sprintf("Err(%v)", e.Value)
 }
 
 //=====================================================
