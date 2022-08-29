@@ -1,5 +1,7 @@
 package option
 
+import "fmt"
+
 // Implements Monad[Option[T], Option[U], T, U].
 type OptionMonad[T any, U any] struct {
 }
@@ -53,6 +55,8 @@ type Option[T any] interface {
 	OrElse(f func() Option[T]) Option[T]
 	// If exactly one of the options contains a value, returns that option. Otherwise, returns Nothing.
 	Xor(opt2 Option[T]) Option[T]
+
+	String() string
 }
 
 //=====================================================
@@ -126,6 +130,10 @@ func (s Some[T]) Xor(opt2 Option[T]) Option[T] {
 	)
 }
 
+func (s Some[T]) String() string {
+	return fmt.Sprintf("Some(%v)", s.Value)
+}
+
 //=====================================================
 
 type Nothing[T any] struct {
@@ -184,6 +192,10 @@ func (n Nothing[T]) OrElse(f func() Option[T]) Option[T] {
 
 func (n Nothing[T]) Xor(opt2 Option[T]) Option[T] {
 	return opt2
+}
+
+func (n Nothing[T]) String() string {
+	return fmt.Sprintf("Nothing")
 }
 
 //=====================================================
