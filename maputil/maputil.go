@@ -168,3 +168,14 @@ func FilterMap[K1 comparable, V1 any, K2 comparable, V2 any](
 	}
 	return From(ret)
 }
+
+// Fold calls f successively with each key-value pair in the map and the current accumulator.
+// The accumulator value is then updated with the new return value of f.
+// NOTE: Map has no defined iteration order. It may differ in successive runs.
+// Do not use Fold with any function that is order-dependent.
+func Fold[K comparable, V any, A any](m Map[K, V], a A, f func(A, K, V) A) A {
+	for k, v := range m.m {
+		a = f(a, k, v)
+	}
+	return a
+}
