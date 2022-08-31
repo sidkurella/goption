@@ -53,13 +53,17 @@ type Result[T any, E any] interface {
 
 	// Unwrap returns the contained Ok value. Panics if it is Err.
 	Unwrap() T
-	// Returns the contained Err value. Panics if it is Ok.
-	UnwrapErr() E
 	// Returns the contained Ok value. If the result is Err, returns the provided default.
 	// Default value is eagerly evaluated. Consider using UnwrapOrElse if providing the result of a function call.
 	UnwrapOr(defaultValue T) T
 	// Returns the contained Ok value. If the result is Err, computes the default from the provided closure.
 	UnwrapOrElse(defaultFunc func(E) T) T
+	// Returns the contained Err value. Panics if it is Ok.
+	UnwrapErr() E
+	// Returns the contained Err value. If the result is Ok, returns the provided default.
+	UnwrapErrOr(defaultValue E) E
+	// Returns the contained Err value. If the result is Ok, computes the default from the provided closure.
+	UnwrapErrOrElse(defaultFunc func(T) E) E
 
 	String() string
 }
@@ -109,16 +113,24 @@ func (o Ok[T, E]) Unwrap() T {
 	return o.Value
 }
 
-func (o Ok[T, E]) UnwrapErr() E {
-	panic(o.Value)
-}
-
 func (o Ok[T, E]) UnwrapOr(_ T) T {
 	return o.Value
 }
 
 func (o Ok[T, E]) UnwrapOrElse(_ func(E) T) T {
 	return o.Value
+}
+
+func (o Ok[T, E]) UnwrapErr() E {
+	panic(o.Value)
+}
+
+func (o Ok[T, E]) UnwrapErrOr(defaultValue E) E {
+	return defaultValue
+}
+
+func (o Ok[T, E]) UnwrapErrOrElse(defaultFunc func(T) E) E {
+	return defaultFunc(o.Value)
 }
 
 func (o Ok[T, E]) String() string {
@@ -170,16 +182,24 @@ func (e Err[T, E]) Unwrap() T {
 	panic(e.Value)
 }
 
-func (e Err[T, E]) UnwrapErr() E {
-	return e.Value
-}
-
 func (e Err[T, E]) UnwrapOr(defaultValue T) T {
 	return defaultValue
 }
 
 func (e Err[T, E]) UnwrapOrElse(f func(E) T) T {
 	return f(e.Value)
+}
+
+func (e Err[T, E]) UnwrapErr() E {
+	return e.Value
+}
+
+func (e Err[T, E]) UnwrapErrOr(_ E) E {
+	return e.Value
+}
+
+func (e Err[T, E]) UnwrapErrOrElse(_ func(T) E) E {
+	return e.Value
 }
 
 func (e Err[T, E]) String() string {
@@ -307,4 +327,30 @@ func Match[T any, E any, U any](res Result[T, E], okArm func(Ok[T, E]) U, errArm
 	default:
 		panic("result type is neither Ok[T, E] nor Err[T, E]") // This should never happen.
 	}
+}
+
+// Converts an Option[T] to a Result[T, E], mapping Some[T] to Ok[T], and Nothing to Err[err].
+// Arguments are eagerly evaluated; consider using OkOrElse if passing the result of a function call.
+func OkOr[T any, E any](opt option.Option[T], err E) Result[T, E] {
+	return option.Match(opt,
+		func(s option.Some[T]) Result[T, E] {
+			return Ok[T, E]{Value: s.Value}
+		},
+		func(n option.Nothing[T]) Result[T, E] {
+			return Err[T, E]{Value: err}
+		},
+	)
+}
+
+// Converts an Option[T] to a Result[T, E], mapping Some[T] to Ok[T], and Nothing to Err[f()].
+// f is lazily evaluated.
+func OkOrElse[T any, E any](opt option.Option[T], f func() E) Result[T, E] {
+	return option.Match(opt,
+		func(s option.Some[T]) Result[T, E] {
+			return Ok[T, E]{Value: s.Value}
+		},
+		func(n option.Nothing[T]) Result[T, E] {
+			return Err[T, E]{Value: f()}
+		},
+	)
 }
