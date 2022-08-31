@@ -18,6 +18,13 @@ func Uncurry[A any, B any, C any](f func(A) func(B) C) func(A, B) C {
 	}
 }
 
+// Compose takes two functions f(x) and g(x) and returns f(g(x)).
+func Compose[A any, B any, C any](f func(B) C, g func(A) B) func(A) C {
+	return func(a A) C {
+		return f(g(a))
+	}
+}
+
 // Memoize caches all call-result pairs from the given function.
 // It will then use the cache to return the information from subsequent calls.
 // NOTE: This cache grows without bound.
