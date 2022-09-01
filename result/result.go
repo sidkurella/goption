@@ -46,11 +46,6 @@ type Result[T any, E any] interface {
 	// Converts self into an Option[E], and discarding the error, if any.
 	Err() option.Option[E]
 
-	// Returns the contained Ok value. Panics if the result is not Ok.
-	Expect(msg string) T
-	// Returns the contained Err value. Panics if the result is not Err.
-	ExpectErr(msg string) E
-
 	// Unwrap returns the contained Ok value. Panics if it is Err.
 	Unwrap() T
 	// Returns the contained Ok value. If the result is Err, returns the provided default.
@@ -64,6 +59,11 @@ type Result[T any, E any] interface {
 	UnwrapErrOr(defaultValue E) E
 	// Returns the contained Err value. If the result is Ok, computes the default from the provided closure.
 	UnwrapErrOrElse(defaultFunc func(T) E) E
+
+	// Returns the contained Ok value. Panics with the given message if the result is not Ok.
+	Expect(msg string) T
+	// Returns the contained Err value. Panics with the given message if the result is not Err.
+	ExpectErr(msg string) E
 
 	String() string
 }

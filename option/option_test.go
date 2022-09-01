@@ -44,7 +44,7 @@ func TestOption_Unwrap(t *testing.T) {
 			t.Fail()
 		}
 	})
-	t.Run("true for Nothing", func(t *testing.T) {
+	t.Run("panics for Nothing", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r == nil {
 				t.Errorf("Panic was expected but did not occur")
@@ -101,7 +101,7 @@ func TestOption_Expect(t *testing.T) {
 			r := recover()
 			if r == nil {
 				t.Errorf("Panic was expected but did not occur")
-			} else if r != "panic expected" {
+			} else if r != msg {
 				t.Errorf("Panic was expected but message was %v (did not match expected msg %v)", r, msg)
 			}
 		}()
