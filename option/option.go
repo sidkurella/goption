@@ -125,7 +125,7 @@ func (s Some[T]) Xor(opt2 Option[T]) Option[T] {
 			return Nothing[T]{}
 		},
 		func(_ Nothing[T]) Option[T] {
-			return opt2
+			return s
 		},
 	)
 }
