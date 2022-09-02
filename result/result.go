@@ -278,13 +278,13 @@ func MapOr[T any, E any, U any](res Result[T, E], defaultValue U, f func(T) U) R
 // Maps a Result[T, E] to Result[U, E] by applying a function to a contained Ok value.
 // Returns the result produced by the default function if it is Err.
 // Default is lazily evaluated.
-func MapOrElse[T any, E any, U any](res Result[T, E], defaultFunc func() U, f func(T) U) Result[U, E] {
+func MapOrElse[T any, E any, U any](res Result[T, E], defaultFunc func(E) U, f func(T) U) Result[U, E] {
 	return Match(res,
 		func(o Ok[T, E]) Result[U, E] {
 			return Ok[U, E]{Value: f(o.Value)}
 		},
 		func(e Err[T, E]) Result[U, E] {
-			return Ok[U, E]{Value: defaultFunc()}
+			return Ok[U, E]{Value: defaultFunc(e.Value)}
 		},
 	)
 }
