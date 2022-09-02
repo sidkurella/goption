@@ -8,6 +8,9 @@ Things implemented:
 - Result
 - Slice utilities
 - Map utilities
+- Higher order function utilities
+
+Open to feature suggestions
 
 Things partially implemented:
 - Iterator
