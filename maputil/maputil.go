@@ -53,6 +53,11 @@ func (m Map[K, V]) ContainsKey(k K) bool {
 	return ok
 }
 
+// IsEmpty returns if the map has no key-value pairs in it.
+func (m Map[K, V]) IsEmpty() bool {
+	return len(m.m) == 0
+}
+
 // Insert inserts a key-value pair into the map.
 // If a value V already existed for this key, Some[V] is returned. Otherwise, Nothing is returned.
 func (m Map[K, V]) Insert(k K, v V) option.Option[V] {
@@ -62,6 +67,11 @@ func (m Map[K, V]) Insert(k K, v V) option.Option[V] {
 		return option.Some[V]{Value: val}
 	}
 	return option.Nothing[V]{}
+}
+
+// Len returns the number of key-value pairs in the map.
+func (m Map[K, V]) Len() int {
+	return len(m.m)
 }
 
 // TryInsert tries to insert a key-value pair into the map.
@@ -81,8 +91,8 @@ func (m Map[K, V]) TryInsert(k K, v V) result.Result[V, OccupiedError[K, V]] {
 // Remove removes a key from the map. If there was a value present at the key, it is returned.
 func (m Map[K, V]) Remove(k K) option.Option[V] {
 	val, ok := m.m[k]
-	delete(m.m, k)
 	if ok {
+		delete(m.m, k)
 		return option.Some[V]{Value: val}
 	}
 	return option.Nothing[V]{}
@@ -108,6 +118,7 @@ func (m Map[K, V]) Filter(pred func(K, V) bool) {
 }
 
 // Collect collects a map into a slice of key-value pairs.
+// NOTE: Since there is no defined iteration order on maps, the order of elements in the slice will be random.
 func (m Map[K, V]) Collect() []Entry[K, V] {
 	ret := make([]Entry[K, V], 0, len(m.m))
 	for k, v := range m.m {
@@ -120,6 +131,7 @@ func (m Map[K, V]) Collect() []Entry[K, V] {
 }
 
 // CollectKeys collects a map into a slice of keys.
+// NOTE: Since there is no defined iteration order on maps, the order of elements in the slice will be random.
 func (m Map[K, V]) CollectKeys() []K {
 	ret := make([]K, 0, len(m.m))
 	for k := range m.m {
@@ -129,6 +141,7 @@ func (m Map[K, V]) CollectKeys() []K {
 }
 
 // CollectValues collects a map into a slice of values.
+// NOTE: Since there is no defined iteration order on maps, the order of elements in the slice will be random.
 func (m Map[K, V]) CollectValues() []V {
 	ret := make([]V, 0, len(m.m))
 	for _, v := range m.m {
@@ -138,6 +151,7 @@ func (m Map[K, V]) CollectValues() []V {
 }
 
 // ForEach calls the given closure for every key-value pair in the map.
+// NOTE: Since there is no defined iteration order on maps, the order of elements traversed will be random.
 func (m Map[K, V]) ForEach(f func(K, V)) {
 	for k, v := range m.m {
 		f(k, v)
@@ -155,7 +169,8 @@ func Apply[K1 comparable, V1 any, K2 comparable, V2 any](m Map[K1, V1], f func(K
 }
 
 // FilterMap applies f to each key-value pair in m.
-// If f returns Some[Entry] then the entry is kept in the new map. If it returns Nothing, the entry is discarded.
+// If f returns Some[Entry] then the entry is kept in the new map.
+// If it returns Nothing, the entry is discarded.
 func FilterMap[K1 comparable, V1 any, K2 comparable, V2 any](
 	m Map[K1, V1], f func(K1, V1) option.Option[Entry[K2, V2]],
 ) Map[K2, V2] {
