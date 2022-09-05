@@ -5,6 +5,7 @@ import (
 	"github.com/sidkurella/goption/option"
 )
 
+// A HashSet type backed by an HashMap.
 type Set[K comparable] struct {
 	m maputil.Map[K, struct{}]
 }
@@ -33,6 +34,11 @@ func (s Set[K]) Into() map[K]struct{} {
 // Returns if the set is empty (no values) or not.
 func (s Set[K]) IsEmpty() bool {
 	return s.m.IsEmpty()
+}
+
+// Removes all elements from the set.
+func (s Set[K]) Clear() {
+	s.m.Clear()
 }
 
 // Returns the number of values in the set.

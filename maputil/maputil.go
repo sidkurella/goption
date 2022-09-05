@@ -1,20 +1,30 @@
 package maputil
 
 import (
+	"fmt"
+
 	"github.com/sidkurella/goption/option"
 	"github.com/sidkurella/goption/result"
 )
 
+// An error indicating that the given key is already in the map, with the given value.
 type OccupiedError[K comparable, V any] struct {
 	Key   K
 	Value V
 }
 
+// String representation of this OccupiedError.
+func (o OccupiedError[K, V]) Error() string {
+	return fmt.Sprintf("key %v is occupied (value: %v)", o.Key, o.Value)
+}
+
+// Represents an individual entry (key-value pair) in the map.
 type Entry[K comparable, V any] struct {
 	Key   K
 	Value V
 }
 
+// A HashMap type backed by an underlying Go map.
 type Map[K comparable, V any] struct {
 	m map[K]V
 }
