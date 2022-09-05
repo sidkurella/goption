@@ -158,6 +158,16 @@ func (m Map[K, V]) ForEach(f func(K, V)) {
 	}
 }
 
+// Extend inserts every element of m2 into the map. Returns a reference to the original map (for chaining).
+// m2 is not modified; elements are copied.
+// If any key is already present in m, its value will be overwritten with the value from m2.
+func (m Map[K, V]) Extend(m2 Map[K, V]) Map[K, V] {
+	m2.ForEach(func(k K, v V) {
+		_ = m.Insert(k, v)
+	})
+	return m
+}
+
 // Apply applies f to each key-value pair in m, returning a new map with the resultant key-value pairs.
 func Apply[K1 comparable, V1 any, K2 comparable, V2 any](m Map[K1, V1], f func(K1, V1) (K2, V2)) Map[K2, V2] {
 	ret := make(map[K2]V2, len(m.m))
