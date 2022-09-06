@@ -380,3 +380,40 @@ func TestFold(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestExtend(t *testing.T) {
+	m1 := maputil.From(map[int]string{
+		1: "one",
+		2: "two",
+		3: "three",
+	})
+	m2 := maputil.From(map[int]string{
+		4: "four",
+		5: "five",
+		6: "six",
+
+		2: "two again", // Should be overwritten.
+	})
+	expectedM2 := maputil.From(map[int]string{ // Should not modify m2.
+		4: "four",
+		5: "five",
+		6: "six",
+
+		2: "two again", // Should be overwritten.
+	})
+
+	out := m1.Extend(m2)
+	expected := maputil.From(map[int]string{
+		1: "one",
+		2: "two again", // Should be overwritten.
+		3: "three",
+		4: "four",
+		5: "five",
+		6: "six",
+	})
+	if !reflect.DeepEqual(out, expected) ||
+		!reflect.DeepEqual(m1, expected) ||
+		!reflect.DeepEqual(m2, expectedM2) {
+		t.Fail()
+	}
+}

@@ -1,20 +1,30 @@
 package maputil
 
 import (
+	"fmt"
+
 	"github.com/sidkurella/goption/option"
 	"github.com/sidkurella/goption/result"
 )
 
+// An error indicating that the given key is already in the map, with the given value.
 type OccupiedError[K comparable, V any] struct {
 	Key   K
 	Value V
 }
 
+// String representation of this OccupiedError.
+func (o OccupiedError[K, V]) Error() string {
+	return fmt.Sprintf("key %v is occupied (value: %v)", o.Key, o.Value)
+}
+
+// Represents an individual entry (key-value pair) in the map.
 type Entry[K comparable, V any] struct {
 	Key   K
 	Value V
 }
 
+// A HashMap type backed by an underlying Go map.
 type Map[K comparable, V any] struct {
 	m map[K]V
 }
@@ -156,6 +166,16 @@ func (m Map[K, V]) ForEach(f func(K, V)) {
 	for k, v := range m.m {
 		f(k, v)
 	}
+}
+
+// Extend inserts every element of m2 into the map. Returns a reference to the original map (for chaining).
+// m2 is not modified; elements are copied.
+// If any key is already present in m, its value will be overwritten with the value from m2.
+func (m Map[K, V]) Extend(m2 Map[K, V]) Map[K, V] {
+	m2.ForEach(func(k K, v V) {
+		_ = m.Insert(k, v)
+	})
+	return m
 }
 
 // Apply applies f to each key-value pair in m, returning a new map with the resultant key-value pairs.
