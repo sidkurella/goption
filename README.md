@@ -9,6 +9,7 @@ Things implemented:
 - Slice utilities
 - Map utilities
 - Higher order function utilities
+- HashSet
 
 Open to feature suggestions
 
