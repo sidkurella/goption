@@ -433,3 +433,24 @@ func TestMinBy(t *testing.T) {
 		}
 	})
 }
+
+func TestCollect(t *testing.T) {
+	t.Run("non-empty", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{2, 1, 5, 3, 4},
+		}
+		res := iterator.Collect[int](iter)
+		if !reflect.DeepEqual(res, iter.elements) {
+			t.Fail()
+		}
+	})
+	t.Run("empty", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{},
+		}
+		res := iterator.Collect[int](iter)
+		if !reflect.DeepEqual(res, []int{}) {
+			t.Fail()
+		}
+	})
+}

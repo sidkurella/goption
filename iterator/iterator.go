@@ -195,6 +195,13 @@ func MinBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
 	)
 }
 
+// Collect returns all the elements of the iterator into a slice.
+func Collect[T any](iter Iterator[T]) []T {
+	return Fold(iter, []T{}, func(a []T, t T) []T {
+		return append(a, t)
+	})
+}
+
 // IntoIterator is an interface representing something that can turn into an Iterator.
 type IntoIterator[T any] interface {
 	IntoIter() Iterator[T]
