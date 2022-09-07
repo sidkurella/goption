@@ -148,7 +148,7 @@ func Last[T any](iter Iterator[T]) option.Option[T] {
 // Max returns the maximum element of the iterator.
 // Returns the last element if multiple elements are equally maximal.
 // Returns Nothing if the iterator is empty.
-func Max[T constraints.Ordered](iter Iterator[T], less func(T, T) bool) option.Option[T] {
+func Max[T constraints.Ordered](iter Iterator[T]) option.Option[T] {
 	return MaxBy(iter, func(t1 T, t2 T) bool {
 		return t1 < t2
 	})
@@ -162,7 +162,7 @@ func MaxBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
 	return Fold[T, option.Option[T]](iter, option.Nothing[T]{},
 		func(o option.Option[T], t T) option.Option[T] {
 			val, ok := o.Get()
-			if !ok || !less(val, t) {
+			if !ok || !less(t, val) { // If there is no current value, or the new is >= than the current, update.
 				val = t
 			}
 			return option.Some[T]{Value: val}
@@ -173,7 +173,7 @@ func MaxBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
 // Min returns the minimum element of the iterator.
 // Returns the last element if multiple elements are equally minimal.
 // Returns Nothing if the iterator is empty.
-func Min[T constraints.Ordered](iter Iterator[T], less func(T, T) bool) option.Option[T] {
+func Min[T constraints.Ordered](iter Iterator[T]) option.Option[T] {
 	return MinBy(iter, func(t1 T, t2 T) bool {
 		return t1 < t2
 	})
@@ -187,7 +187,7 @@ func MinBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
 	return Fold[T, option.Option[T]](iter, option.Nothing[T]{},
 		func(o option.Option[T], t T) option.Option[T] {
 			val, ok := o.Get()
-			if !ok || less(val, t) {
+			if !ok || less(t, val) { // If there is no current value, or the new is < than the current, update.
 				val = t
 			}
 			return option.Some[T]{Value: val}
