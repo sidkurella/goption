@@ -2,7 +2,7 @@ package iterator
 
 import "github.com/sidkurella/goption/option"
 
-// Returns an iterator that only returns elements that pass pred.
+// An iterator that only returns elements that pass pred.
 type filterIterator[T any] struct {
 	inner Iterator[T]
 	pred  func(T) bool
