@@ -46,7 +46,7 @@ func TestZip(t *testing.T) {
 			t.Fail()
 		}
 	})
-	t.Run("first iterator shorter", func(t *testing.T) {
+	t.Run("second iterator shorter", func(t *testing.T) {
 		expected := []pair.Pair[int, string]{
 			{First: 1, Second: "1"},
 			{First: 2, Second: "2"},
