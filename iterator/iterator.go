@@ -8,6 +8,8 @@ import (
 
 // Iterator returns items via successive Next calls until it has run out.
 // It signals that the iterator is now empty by returning Nothing.
+// NOTE: After an iterator returns Nothing for the first time, there is no guarantee that successive calls to
+// NOTE: Iterator.Next() will continue to return Nothing. If you require this, use Fuse().
 type Iterator[T any] interface {
 	Next() option.Option[T]
 }
