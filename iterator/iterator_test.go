@@ -265,6 +265,18 @@ func TestNth(t *testing.T) {
 			t.Fail()
 		}
 	})
+	t.Run("0", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{1, 2, 3, 4, 5},
+		}
+		nth := iterator.Nth[int](iter, 0)
+		if nth.Unwrap() != 1 {
+			t.Fail()
+		}
+		if iter.Next().Unwrap() != 2 { // Iterator is advanced.
+			t.Fail()
+		}
+	})
 	t.Run("does not exist", func(t *testing.T) {
 		iter := &fakeIterator{
 			elements: []int{1, 2, 3, 4, 5},
