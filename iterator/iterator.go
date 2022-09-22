@@ -2,12 +2,15 @@ package iterator
 
 import (
 	"github.com/sidkurella/goption/option"
+	"github.com/sidkurella/goption/pair"
 	"github.com/sidkurella/goption/result"
 	"golang.org/x/exp/constraints"
 )
 
 // Iterator returns items via successive Next calls until it has run out.
 // It signals that the iterator is now empty by returning Nothing.
+// NOTE: After an iterator returns Nothing for the first time, there is no guarantee that successive calls to
+// NOTE: Iterator.Next() will continue to return Nothing. If you require this, use Fuse().
 type Iterator[T any] interface {
 	Next() option.Option[T]
 }
@@ -193,6 +196,53 @@ func MinBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
 			return option.Some[T]{Value: val}
 		},
 	)
+}
+
+// Collect returns all the elements of the iterator into a slice.
+func Collect[T any](iter Iterator[T]) []T {
+	return Fold(iter, []T{}, func(a []T, t T) []T {
+		return append(a, t)
+	})
+}
+
+// Consumes an iterator, producing two lists from it.
+// The first contains all the elements the predicate returned true for, and the second, false.
+func Partition[T any](iter Iterator[T], f func(T) bool) ([]T, []T) {
+	trueList := []T{}
+	falseList := []T{}
+	ForEach(iter, func(t T) {
+		if f(t) {
+			trueList = append(trueList, t)
+		} else {
+			falseList = append(falseList, t)
+		}
+	})
+	return trueList, falseList
+}
+
+// Searches for an element in an iterator, returning its index.
+// Returns Nothing if it was not found.
+// Consumes the iterator up to the item that returned true.
+func Position[T any](iter Iterator[T], pred func(T) bool) option.Option[uint64] {
+	i := uint64(0)
+	for item := iter.Next(); item.IsSome(); item = iter.Next() {
+		if pred(item.Unwrap()) {
+			return option.Some[uint64]{Value: i}
+		}
+		i++
+	}
+	return option.Nothing[uint64]{}
+}
+
+// Consumes an entire iterator of pairs, producing two collections, for the first and second elements respectively.
+func Unzip[T any, U any](iter Iterator[pair.Pair[T, U]]) ([]T, []U) {
+	firstList := []T{}
+	secondList := []U{}
+	ForEach(iter, func(t pair.Pair[T, U]) {
+		firstList = append(firstList, t.First)
+		secondList = append(secondList, t.Second)
+	})
+	return firstList, secondList
 }
 
 // IntoIterator is an interface representing something that can turn into an Iterator.

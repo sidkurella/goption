@@ -6,6 +6,7 @@ import (
 
 	"github.com/sidkurella/goption/iterator"
 	"github.com/sidkurella/goption/option"
+	"github.com/sidkurella/goption/pair"
 	"github.com/sidkurella/goption/result"
 )
 
@@ -35,6 +36,20 @@ func (f *fakeStringIterator) Next() option.Option[string] {
 		return ret
 	}
 	return option.Nothing[string]{}
+}
+
+type fakePairIterator struct {
+	elements []pair.Pair[int, string]
+	i        int
+}
+
+func (f *fakePairIterator) Next() option.Option[pair.Pair[int, string]] {
+	if f.i < len(f.elements) {
+		ret := option.Some[pair.Pair[int, string]]{Value: f.elements[f.i]}
+		f.i++
+		return ret
+	}
+	return option.Nothing[pair.Pair[int, string]]{}
 }
 
 func TestAdvanceBy(t *testing.T) {
@@ -265,6 +280,18 @@ func TestNth(t *testing.T) {
 			t.Fail()
 		}
 	})
+	t.Run("0", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{1, 2, 3, 4, 5},
+		}
+		nth := iterator.Nth[int](iter, 0)
+		if nth.Unwrap() != 1 {
+			t.Fail()
+		}
+		if iter.Next().Unwrap() != 2 { // Iterator is advanced.
+			t.Fail()
+		}
+	})
 	t.Run("does not exist", func(t *testing.T) {
 		iter := &fakeIterator{
 			elements: []int{1, 2, 3, 4, 5},
@@ -432,4 +459,61 @@ func TestMinBy(t *testing.T) {
 			t.Fail()
 		}
 	})
+}
+
+func TestCollect(t *testing.T) {
+	t.Run("non-empty", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{2, 1, 5, 3, 4},
+		}
+		res := iterator.Collect[int](iter)
+		if !reflect.DeepEqual(res, iter.elements) {
+			t.Fail()
+		}
+	})
+	t.Run("empty", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{},
+		}
+		res := iterator.Collect[int](iter)
+		if !reflect.DeepEqual(res, []int{}) {
+			t.Fail()
+		}
+	})
+}
+
+func TestPartition(t *testing.T) {
+	expectedTrue := []int{2, 4}
+	expectedFalse := []int{1, 5, 3}
+	iter := &fakeIterator{
+		elements: []int{2, 1, 5, 3, 4},
+	}
+	trueList, falseList := iterator.Partition[int](iter, func(t int) bool {
+		return t%2 == 0
+	})
+	if !reflect.DeepEqual(trueList, expectedTrue) {
+		t.Fail()
+	}
+	if !reflect.DeepEqual(falseList, expectedFalse) {
+		t.Fail()
+	}
+}
+
+func TestUnzip(t *testing.T) {
+	iter := &fakePairIterator{
+		elements: []pair.Pair[int, string]{
+			{First: 1, Second: "3"},
+			{First: 2, Second: "2"},
+			{First: 3, Second: "1"},
+		},
+	}
+	expectedFirst := []int{1, 2, 3}
+	expectedSecond := []string{"3", "2", "1"}
+	firstList, secondList := iterator.Unzip[int, string](iter)
+	if !reflect.DeepEqual(firstList, expectedFirst) {
+		t.Fail()
+	}
+	if !reflect.DeepEqual(secondList, expectedSecond) {
+		t.Fail()
+	}
 }
