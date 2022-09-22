@@ -204,6 +204,21 @@ func Collect[T any](iter Iterator[T]) []T {
 	})
 }
 
+// Consumes an iterator, producing two lists from it.
+// The first contains all the elements the predicate returned true for, and the second, false.
+func Partition[T any](iter Iterator[T], f func(T) bool) ([]T, []T) {
+	trueList := []T{}
+	falseList := []T{}
+	ForEach[T](iter, func(t T) {
+		if f(t) {
+			trueList = append(trueList, t)
+		} else {
+			falseList = append(falseList, t)
+		}
+	})
+	return trueList, falseList
+}
+
 // IntoIterator is an interface representing something that can turn into an Iterator.
 type IntoIterator[T any] interface {
 	IntoIter() Iterator[T]

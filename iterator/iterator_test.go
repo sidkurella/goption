@@ -466,3 +466,20 @@ func TestCollect(t *testing.T) {
 		}
 	})
 }
+
+func TestPartition(t *testing.T) {
+	expectedTrue := []int{2, 4}
+	expectedFalse := []int{1, 5, 3}
+	iter := &fakeIterator{
+		elements: []int{2, 1, 5, 3, 4},
+	}
+	trueList, falseList := iterator.Partition[int](iter, func(t int) bool {
+		return t%2 == 0
+	})
+	if !reflect.DeepEqual(trueList, expectedTrue) {
+		t.Fail()
+	}
+	if !reflect.DeepEqual(falseList, expectedFalse) {
+		t.Fail()
+	}
+}
