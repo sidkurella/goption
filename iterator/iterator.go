@@ -2,6 +2,7 @@ package iterator
 
 import (
 	"github.com/sidkurella/goption/option"
+	"github.com/sidkurella/goption/pair"
 	"github.com/sidkurella/goption/result"
 	"golang.org/x/exp/constraints"
 )
@@ -231,6 +232,17 @@ func Position[T any](iter Iterator[T], pred func(T) bool) option.Option[uint64] 
 		i++
 	}
 	return option.Nothing[uint64]{}
+}
+
+// Consumes an entire iterator of pairs, producing two collections, for the first and second elements respectively.
+func Unzip[T any, U any](iter Iterator[pair.Pair[T, U]]) ([]T, []U) {
+	firstList := []T{}
+	secondList := []U{}
+	ForEach(iter, func(t pair.Pair[T, U]) {
+		firstList = append(firstList, t.First)
+		secondList = append(secondList, t.Second)
+	})
+	return firstList, secondList
 }
 
 // IntoIterator is an interface representing something that can turn into an Iterator.

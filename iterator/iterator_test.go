@@ -6,6 +6,7 @@ import (
 
 	"github.com/sidkurella/goption/iterator"
 	"github.com/sidkurella/goption/option"
+	"github.com/sidkurella/goption/pair"
 	"github.com/sidkurella/goption/result"
 )
 
@@ -35,6 +36,20 @@ func (f *fakeStringIterator) Next() option.Option[string] {
 		return ret
 	}
 	return option.Nothing[string]{}
+}
+
+type fakePairIterator struct {
+	elements []pair.Pair[int, string]
+	i        int
+}
+
+func (f *fakePairIterator) Next() option.Option[pair.Pair[int, string]] {
+	if f.i < len(f.elements) {
+		ret := option.Some[pair.Pair[int, string]]{Value: f.elements[f.i]}
+		f.i++
+		return ret
+	}
+	return option.Nothing[pair.Pair[int, string]]{}
 }
 
 func TestAdvanceBy(t *testing.T) {
@@ -484,19 +499,21 @@ func TestPartition(t *testing.T) {
 	}
 }
 
-func TestPosition(t *testing.T) {
-	iter := &fakeIterator{
-		elements: []int{2, 1, 5, 3, 4},
+func TestUnzip(t *testing.T) {
+	iter := &fakePairIterator{
+		elements: []pair.Pair[int, string]{
+			{First: 1, Second: "3"},
+			{First: 2, Second: "2"},
+			{First: 3, Second: "1"},
+		},
 	}
-	index := iterator.Position[int](iter, func(t int) bool {
-		return t == 5
-	})
-	if index.Unwrap() != 2 {
+	expectedFirst := []int{1, 2, 3}
+	expectedSecond := []string{"3", "2", "1"}
+	firstList, secondList := iterator.Unzip[int, string](iter)
+	if !reflect.DeepEqual(firstList, expectedFirst) {
 		t.Fail()
 	}
-	rest := iterator.Collect[int](iter)
-	expected := []int{3, 4}
-	if !reflect.DeepEqual(rest, expected) {
+	if !reflect.DeepEqual(secondList, expectedSecond) {
 		t.Fail()
 	}
 }
