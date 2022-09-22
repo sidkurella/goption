@@ -483,3 +483,20 @@ func TestPartition(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestPosition(t *testing.T) {
+	iter := &fakeIterator{
+		elements: []int{2, 1, 5, 3, 4},
+	}
+	index := iterator.Position[int](iter, func(t int) bool {
+		return t == 5
+	})
+	if index.Unwrap() != 2 {
+		t.Fail()
+	}
+	rest := iterator.Collect[int](iter)
+	expected := []int{3, 4}
+	if !reflect.DeepEqual(rest, expected) {
+		t.Fail()
+	}
+}

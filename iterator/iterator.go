@@ -209,7 +209,7 @@ func Collect[T any](iter Iterator[T]) []T {
 func Partition[T any](iter Iterator[T], f func(T) bool) ([]T, []T) {
 	trueList := []T{}
 	falseList := []T{}
-	ForEach[T](iter, func(t T) {
+	ForEach(iter, func(t T) {
 		if f(t) {
 			trueList = append(trueList, t)
 		} else {
@@ -217,6 +217,20 @@ func Partition[T any](iter Iterator[T], f func(T) bool) ([]T, []T) {
 		}
 	})
 	return trueList, falseList
+}
+
+// Searches for an element in an iterator, returning its index.
+// Returns Nothing if it was not found.
+// Consumes the iterator up to the item that returned true.
+func Position[T any](iter Iterator[T], pred func(T) bool) option.Option[uint64] {
+	i := uint64(0)
+	for item := iter.Next(); item.IsSome(); item = iter.Next() {
+		if pred(item.Unwrap()) {
+			return option.Some[uint64]{Value: i}
+		}
+		i++
+	}
+	return option.Nothing[uint64]{}
 }
 
 // IntoIterator is an interface representing something that can turn into an Iterator.
