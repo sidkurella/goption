@@ -10,6 +10,17 @@ import (
 	"github.com/sidkurella/goption/set"
 )
 
+func TestFromSlice(t *testing.T) {
+	expected := set.From(map[int]struct{}{
+		1: {},
+		2: {},
+	})
+	actual := set.FromSlice([]int{1, 2})
+	if !reflect.DeepEqual(actual, expected) {
+		t.Fail()
+	}
+}
+
 func TestIsEmpty(t *testing.T) {
 	t.Run("not empty", func(t *testing.T) {
 		s := set.From(map[int]struct{}{

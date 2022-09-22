@@ -1,8 +1,10 @@
 package set
 
 import (
+	"github.com/sidkurella/goption/iterator"
 	"github.com/sidkurella/goption/maputil"
 	"github.com/sidkurella/goption/option"
+	"github.com/sidkurella/goption/sliceutil"
 )
 
 // A HashSet type backed by an HashMap.
@@ -23,6 +25,15 @@ func From[K comparable](m map[K]struct{}) Set[K] {
 	return Set[K]{
 		m: maputil.From(m),
 	}
+}
+
+// FromSlice creates a set from an existing slice.
+func FromSlice[K comparable](s []K) Set[K] {
+	ret := New[K]()
+	iterator.ForEach[*K](sliceutil.Iter(s), func(k *K) {
+		ret.Insert(*k)
+	})
+	return ret
 }
 
 // Into returns the underlying Go map backing this set.
