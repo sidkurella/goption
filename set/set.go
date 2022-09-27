@@ -30,8 +30,8 @@ func From[K comparable](m map[K]struct{}) Set[K] {
 // FromSlice creates a set from an existing slice.
 func FromSlice[K comparable](s []K) Set[K] {
 	ret := New[K]()
-	iterator.ForEach[*K](sliceutil.Iter(s), func(k *K) {
-		ret.Insert(*k)
+	iterator.ForEach[K](sliceutil.Iter(s), func(k K) {
+		ret.Insert(k)
 	})
 	return ret
 }
