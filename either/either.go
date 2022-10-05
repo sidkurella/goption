@@ -355,3 +355,11 @@ func RightOrElse[L any, R any](opt option.Option[R], f func() L) Either[L, R] {
 		},
 	)
 }
+
+// Returns Left[err] if err != nil. Returns Right[r] if err == nil.
+func From[R any](r R, err error) Either[error, R] {
+	if err != nil {
+		return Left[error, R]{Value: err}
+	}
+	return Right[error, R]{Value: r}
+}
