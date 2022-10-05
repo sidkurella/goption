@@ -98,6 +98,17 @@ func TestAll(t *testing.T) {
 			t.Fail()
 		}
 	})
+	t.Run("empty", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{},
+		}
+		all := iterator.All[int](iter, func(t int) bool {
+			return t < 4
+		})
+		if !all {
+			t.Fail()
+		}
+	})
 }
 
 func TestAny(t *testing.T) {
@@ -121,6 +132,17 @@ func TestAny(t *testing.T) {
 		}
 		any := iterator.Any[int](iter, func(t int) bool {
 			return t > 10
+		})
+		if any {
+			t.Fail()
+		}
+	})
+	t.Run("empty", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{},
+		}
+		any := iterator.Any[int](iter, func(t int) bool {
+			return t < 4
 		})
 		if any {
 			t.Fail()
