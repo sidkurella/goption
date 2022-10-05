@@ -1,6 +1,7 @@
 package option_test
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -468,6 +469,40 @@ func TestOption_Match(t *testing.T) {
 		)
 		expected := "nothing"
 		if res != expected || someArmCalls != 0 || nothingArmCalls != 1 {
+			t.Fail()
+		}
+	})
+}
+
+func TestOption_From(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		res := option.From(3, true)
+		expected := option.Some[int]{Value: 3}
+		if res != expected {
+			t.Fail()
+		}
+	})
+	t.Run("not ok", func(t *testing.T) {
+		res := option.From(3, false)
+		expected := option.Nothing[int]{}
+		if res != expected {
+			t.Fail()
+		}
+	})
+}
+
+func TestOption_FromError(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		res := option.FromError(3, nil)
+		expected := option.Some[int]{Value: 3}
+		if res != expected {
+			t.Fail()
+		}
+	})
+	t.Run("not nil", func(t *testing.T) {
+		res := option.FromError(3, fmt.Errorf("error"))
+		expected := option.Nothing[int]{}
+		if res != expected {
 			t.Fail()
 		}
 	})
