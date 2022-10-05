@@ -67,7 +67,7 @@ func TestAdvanceBy(t *testing.T) {
 		t.Fail()
 	}
 	res = iterator.AdvanceBy[int](iter, 3)
-	if res.UnwrapLeft() != uint64(1) {
+	if res.UnwrapSecond() != uint64(1) {
 		t.Fail()
 	}
 }
@@ -240,12 +240,12 @@ func TestTryFold(t *testing.T) {
 		ret := iterator.TryFold[int](iter, 1,
 			func(a int, t int) either.Either[int, int] {
 				if t < 4 {
-					return either.Right[int, int]{Value: a * t}
+					return either.First[int, int]{Value: a * t}
 				}
-				return either.Left[int, int]{Value: a}
+				return either.Second[int, int]{Value: a}
 			},
 		)
-		if ret.UnwrapLeft() != 6 {
+		if ret.UnwrapSecond() != 6 {
 			t.Fail()
 		}
 		if iter.Next().Unwrap() != 5 { // Iterator should be at the next non-failed element.
@@ -258,7 +258,7 @@ func TestTryFold(t *testing.T) {
 		}
 		ret := iterator.TryFold[int](iter, 1,
 			func(a int, t int) either.Either[int, int] {
-				return either.Right[int, int]{Value: a * t}
+				return either.First[int, int]{Value: a * t}
 			},
 		)
 		if ret.Unwrap() != 120 {

@@ -123,7 +123,7 @@ func TestTryInsert(t *testing.T) {
 			"key 3": 3,
 		})
 		res := m.TryInsert("key 4", 4)
-		expectedRes := either.Right[maputil.OccupiedError[string, int], int]{Value: 4}
+		expectedRes := either.First[int, maputil.OccupiedError[string, int]]{Value: 4}
 		getVal := m.Get("key 4")
 		expectedGet := option.Some[int]{Value: 4}
 		if res != expectedRes || !m.ContainsKey("key 4") || getVal != expectedGet {
@@ -137,7 +137,7 @@ func TestTryInsert(t *testing.T) {
 			"key 3": 3,
 		})
 		res := m.TryInsert("key 3", 4)
-		expectedRes := either.Left[maputil.OccupiedError[string, int], int]{
+		expectedRes := either.Second[int, maputil.OccupiedError[string, int]]{
 			Value: maputil.OccupiedError[string, int]{
 				Key:   "key 3",
 				Value: 3,

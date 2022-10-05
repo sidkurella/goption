@@ -17,16 +17,16 @@ type Iterator[T any] interface {
 
 // Advances the iterator by n elements.
 // This method will eagerly skip n elements by calling next up to n times until Nothing is encountered.
-// Returns Right[struct{}{}] if successful.
-// Returns Left[k] if Nothing is encountered, where k is the number of elements advanced before hitting the end.
-func AdvanceBy[T any](iter Iterator[T], n uint64) either.Either[uint64, struct{}] {
+// Returns First[struct{}{}] if successful.
+// Returns Second[k] if Nothing is encountered, where k is the number of elements advanced before hitting the end.
+func AdvanceBy[T any](iter Iterator[T], n uint64) either.Either[struct{}, uint64] {
 	for i := uint64(0); i < n; i++ {
 		obj := iter.Next()
 		if obj.IsNothing() {
-			return either.Left[uint64, struct{}]{Value: i}
+			return either.Second[struct{}, uint64]{Value: i}
 		}
 	}
-	return either.Right[uint64, struct{}]{}
+	return either.First[struct{}, uint64]{}
 }
 
 // Tests if every element of the iterator matches the predicate.
@@ -35,13 +35,13 @@ func AdvanceBy[T any](iter Iterator[T], n uint64) either.Either[uint64, struct{}
 // The empty iterator returns true.
 func All[T any](iter Iterator[T], pred func(T) bool) bool {
 	return TryFold(iter, true,
-		func(_ bool, t T) either.Either[struct{}, bool] {
+		func(_ bool, t T) either.Either[bool, struct{}] {
 			// Accumulator must be true at any point here.
 			if pred(t) {
-				return either.Right[struct{}, bool]{Value: true}
+				return either.First[bool, struct{}]{Value: true}
 			}
 			// Signal break from fold since the predicate is now false.
-			return either.Left[struct{}, bool]{}
+			return either.Second[bool, struct{}]{}
 		},
 	).UnwrapOr(false)
 }
@@ -52,13 +52,13 @@ func All[T any](iter Iterator[T], pred func(T) bool) bool {
 // The empty iterator returns false.
 func Any[T any](iter Iterator[T], pred func(T) bool) bool {
 	return TryFold(iter, false,
-		func(b bool, t T) either.Either[struct{}, bool] {
+		func(b bool, t T) either.Either[bool, struct{}] {
 			// Accumulator must be false at any point here.
 			if !pred(t) {
-				return either.Right[struct{}, bool]{Value: false}
+				return either.First[bool, struct{}]{Value: false}
 			}
 			// Signal break from fold since the predicate is now true.
-			return either.Left[struct{}, bool]{}
+			return either.Second[bool, struct{}]{}
 		},
 	).UnwrapOr(true)
 }
@@ -76,21 +76,21 @@ func Count[T any](iter Iterator[T]) uint64 {
 // If no element satisfies the predicate, returns Nothing.
 func Find[T any](iter Iterator[T], pred func(T) bool) option.Option[T] {
 	return TryFold(iter, struct{}{},
-		func(_ struct{}, t T) either.Either[option.Option[T], struct{}] {
+		func(_ struct{}, t T) either.Either[struct{}, option.Option[T]] {
 			// Haven't found it yet.
 			if pred(t) {
-				// Return Left to short-circuit out of here.
-				return either.Left[option.Option[T], struct{}]{
+				// Return Second to short-circuit out of here.
+				return either.Second[struct{}, option.Option[T]]{
 					Value: option.Some[T]{Value: t},
 				}
 			}
 			// Still haven't found it.
-			return either.Right[option.Option[T], struct{}]{}
+			return either.First[struct{}, option.Option[T]]{}
 		},
-	).UnwrapLeftOr(option.Nothing[T]{})
+	).UnwrapSecondOr(option.Nothing[T]{})
 }
 
-// Folds every element into an accumulator by applying an operation, returning the final result.
+// Folds every element into an accumulator by applying an operation, returning the final either.
 // The entire iterator will be consumed by this.
 func Fold[T any, A any](iter Iterator[T], a A, f func(A, T) A) A {
 	for item := iter.Next(); item.IsSome(); item = iter.Next() {
@@ -109,19 +109,19 @@ func ForEach[T any](iter Iterator[T], f func(T)) {
 	)
 }
 
-// Tries to fold every element into an accumulator by applying an operation, returning the final result.
-// Short-circuits if the function returns Left, returning the Either.
-func TryFold[T any, L any, A any](
-	iter Iterator[T], a A, f func(A, T) either.Either[L, A],
-) either.Either[L, A] {
+// Tries to fold every element into an accumulator by applying an operation, returning the final either.
+// Short-circuits if the function returns Second, returning the Either.
+func TryFold[T any, A any, E any](
+	iter Iterator[T], a A, f func(A, T) either.Either[A, E],
+) either.Either[A, E] {
 	for item := iter.Next(); item.IsSome(); item = iter.Next() {
 		res := f(a, item.Unwrap())
-		if res.IsLeft() {
+		if res.IsSecond() {
 			return res
 		}
 		a = res.Unwrap()
 	}
-	return either.Right[L, A]{Value: a}
+	return either.First[A, E]{Value: a}
 }
 
 // Advances the iterator by n and returns the nth next item.
@@ -131,7 +131,7 @@ func TryFold[T any, L any, A any](
 // Returns Nothing if n is greater or equal to the length of the iterator.
 func Nth[T any](iter Iterator[T], n uint64) option.Option[T] {
 	return option.AndThen(
-		AdvanceBy(iter, n).Right(),
+		AdvanceBy(iter, n).First(),
 		func(_ struct{}) option.Option[T] {
 			return iter.Next()
 		},
@@ -164,8 +164,8 @@ func Max[T constraints.Ordered](iter Iterator[T]) option.Option[T] {
 func MaxBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
 	return Fold[T, option.Option[T]](iter, option.Nothing[T]{},
 		func(o option.Option[T], t T) option.Option[T] {
-			val, ok := o.Get()
-			if !ok || !less(t, val) { // If there is no current value, or the new is >= than the current, update.
+			val, first := o.Get()
+			if !first || !less(t, val) { // If there is no current value, or the new is >= than the current, update.
 				val = t
 			}
 			return option.Some[T]{Value: val}
@@ -189,8 +189,8 @@ func Min[T constraints.Ordered](iter Iterator[T]) option.Option[T] {
 func MinBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
 	return Fold[T, option.Option[T]](iter, option.Nothing[T]{},
 		func(o option.Option[T], t T) option.Option[T] {
-			val, ok := o.Get()
-			if !ok || less(t, val) { // If there is no current value, or the new is < than the current, update.
+			val, first := o.Get()
+			if !first || less(t, val) { // If there is no current value, or the new is < than the current, update.
 				val = t
 			}
 			return option.Some[T]{Value: val}
