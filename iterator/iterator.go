@@ -174,7 +174,7 @@ func MaxBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
 }
 
 // Min returns the minimum element of the iterator.
-// Returns the last element if multiple elements are equally minimal.
+// Returns the first element if multiple elements are equally minimal.
 // Returns Nothing if the iterator is empty.
 func Min[T constraints.Ordered](iter Iterator[T]) option.Option[T] {
 	return MinBy(iter, func(t1 T, t2 T) bool {
