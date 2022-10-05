@@ -280,3 +280,20 @@ func Match[T any, U any](opt Option[T], someArm func(Some[T]) U, nothingArm func
 		panic("option type is neither Some[T] nor Nothing[T]") // This should never happen.
 	}
 }
+
+// Returns an option from the provided value and boolean indicating if the value is valid.
+// Returns Nothing if ok is false.
+func From[T any](val T, ok bool) Option[T] {
+	if ok {
+		return Some[T]{Value: val}
+	}
+	return Nothing[T]{}
+}
+
+// Returns an option from the provided value and error.
+// Returns Some[T] if the error is nil.
+// Returns Nothing if the error is not nil.
+// NOTE: The error value is discarded. Use Either if this is not desired.
+func FromError[T any](val T, err error) Option[T] {
+	return From(val, err == nil)
+}

@@ -1,6 +1,7 @@
 package either_test
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -708,6 +709,24 @@ func TestEither_RightOrElse(t *testing.T) {
 		})
 		expected := either.Left[string, int]{"hello"}
 		if res != expected || calls != 1 {
+			t.Fail()
+		}
+	})
+}
+
+func TestEither_From(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		res := either.From(3, nil)
+		expected := either.Right[error, int]{Value: 3}
+		if res != expected {
+			t.Fail()
+		}
+	})
+	t.Run("not nil", func(t *testing.T) {
+		err := fmt.Errorf("error")
+		res := either.From(3, err)
+		expected := either.Left[error, int]{Value: err}
+		if res != expected {
 			t.Fail()
 		}
 	})
