@@ -209,19 +209,19 @@ func (l Left[L, R]) String() string {
 
 //=====================================================
 
-// Returns res2 if res1 is Right, otherwise returns the Left value of res1.
-func And[L any, R any, R2 any](res1 Either[L, R], res2 Either[L, R2]) Either[L, R2] {
+// Returns e2 if e1 is Right, otherwise returns the Left value of e1.
+func And[L any, R any, R2 any](e1 Either[L, R], e2 Either[L, R2]) Either[L, R2] {
 	return EitherMonad[L, R, R2]{}.Bind(
-		res1,
+		e1,
 		func(_ R) Either[L, R2] {
-			return res2
+			return e2
 		},
 	)
 }
 
-// Returns f(R) if res1 is Right[R], otherwise returns the Left value of res1.
-func AndThen[L any, R any, R2 any](res1 Either[L, R], f func(R) Either[L, R2]) Either[L, R2] {
-	return EitherMonad[L, R, R2]{}.Bind(res1, f)
+// Returns f(R) if e1 is Right[R], otherwise returns the Left value of e1.
+func AndThen[L any, R any, R2 any](e1 Either[L, R], f func(R) Either[L, R2]) Either[L, R2] {
+	return EitherMonad[L, R, R2]{}.Bind(e1, f)
 }
 
 // Flattens a either of type Either[L, Either[L, R]] to just Either[L, R].
@@ -251,8 +251,8 @@ func Map[L any, R any, R2 any](e Either[L, R], f func(R) R2) Either[L, R2] {
 
 // Maps a Either[L, R] to Either[L2, R] by applying a function to a contained Left value.
 // Leaves an Right value untouched.
-func MapLeft[L any, L2 any, R any](res Either[L, R], f func(L) L2) Either[L2, R] {
-	return Match(res,
+func MapLeft[L any, L2 any, R any](e Either[L, R], f func(L) L2) Either[L2, R] {
+	return Match(e,
 		func(l Left[L, R]) Either[L2, R] {
 			return Left[L2, R]{Value: f(l.Value)}
 		},
@@ -290,7 +290,7 @@ func MapOrElse[L any, R any, R2 any](e Either[L, R], defaultFunc func(L) R2, f f
 	)
 }
 
-// Returns res2 if the either is Left, otherwise returns the Right value of e1.
+// Returns e2 if the either is Left, otherwise returns the Right value of e1.
 // e2 is eagerly evaluated. Consider using OrElse if you are passing the either of a function call.
 func Or[L any, L2 any, R any](e1 Either[L, R], e2 Either[L2, R]) Either[L2, R] {
 	return Match(e1,
