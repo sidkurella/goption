@@ -87,13 +87,13 @@ func (m Map[K, V]) Len() int {
 // TryInsert tries to insert a key-value pair into the map.
 // If a value V already exists for this key, OccupiedError is returned.
 // Otherwise, the new value is returned.
-func (m Map[K, V]) TryInsert(k K, v V) either.Either[OccupiedError[K, V], V] {
+func (m Map[K, V]) TryInsert(k K, v V) either.Either[V, OccupiedError[K, V]] {
 	val, ok := m.m[k]
 	if !ok {
 		m.m[k] = v
-		return either.Right[OccupiedError[K, V], V]{Value: v}
+		return either.First[V, OccupiedError[K, V]]{Value: v}
 	}
-	return either.Left[OccupiedError[K, V], V]{
+	return either.Second[V, OccupiedError[K, V]]{
 		Value: OccupiedError[K, V]{Key: k, Value: val},
 	}
 }
