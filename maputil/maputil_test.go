@@ -5,9 +5,9 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/sidkurella/goption/either"
 	"github.com/sidkurella/goption/maputil"
 	"github.com/sidkurella/goption/option"
-	"github.com/sidkurella/goption/result"
 )
 
 func TestContainsKey(t *testing.T) {
@@ -123,7 +123,7 @@ func TestTryInsert(t *testing.T) {
 			"key 3": 3,
 		})
 		res := m.TryInsert("key 4", 4)
-		expectedRes := result.Ok[int, maputil.OccupiedError[string, int]]{Value: 4}
+		expectedRes := either.Right[maputil.OccupiedError[string, int], int]{Value: 4}
 		getVal := m.Get("key 4")
 		expectedGet := option.Some[int]{Value: 4}
 		if res != expectedRes || !m.ContainsKey("key 4") || getVal != expectedGet {
@@ -137,7 +137,7 @@ func TestTryInsert(t *testing.T) {
 			"key 3": 3,
 		})
 		res := m.TryInsert("key 3", 4)
-		expectedRes := result.Err[int, maputil.OccupiedError[string, int]]{
+		expectedRes := either.Left[maputil.OccupiedError[string, int], int]{
 			Value: maputil.OccupiedError[string, int]{
 				Key:   "key 3",
 				Value: 3,

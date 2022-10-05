@@ -1,9 +1,9 @@
 package iterator
 
 import (
+	"github.com/sidkurella/goption/either"
 	"github.com/sidkurella/goption/option"
 	"github.com/sidkurella/goption/pair"
-	"github.com/sidkurella/goption/result"
 	"golang.org/x/exp/constraints"
 )
 
@@ -17,16 +17,16 @@ type Iterator[T any] interface {
 
 // Advances the iterator by n elements.
 // This method will eagerly skip n elements by calling next up to n times until Nothing is encountered.
-// Returns Ok[struct{}{}] if successful.
-// Returns Err[k] if Nothing is encountered, where k is the number of elements advanced before hitting the end.
-func AdvanceBy[T any](iter Iterator[T], n uint64) result.Result[struct{}, uint64] {
+// Returns Right[struct{}{}] if successful.
+// Returns Left[k] if Nothing is encountered, where k is the number of elements advanced before hitting the end.
+func AdvanceBy[T any](iter Iterator[T], n uint64) either.Either[uint64, struct{}] {
 	for i := uint64(0); i < n; i++ {
 		obj := iter.Next()
 		if obj.IsNothing() {
-			return result.Err[struct{}, uint64]{Value: i}
+			return either.Left[uint64, struct{}]{Value: i}
 		}
 	}
-	return result.Ok[struct{}, uint64]{}
+	return either.Right[uint64, struct{}]{}
 }
 
 // Tests if every element of the iterator matches the predicate.
@@ -35,13 +35,13 @@ func AdvanceBy[T any](iter Iterator[T], n uint64) result.Result[struct{}, uint64
 // The empty iterator returns true.
 func All[T any](iter Iterator[T], pred func(T) bool) bool {
 	return TryFold(iter, true,
-		func(_ bool, t T) result.Result[bool, struct{}] {
+		func(_ bool, t T) either.Either[struct{}, bool] {
 			// Accumulator must be true at any point here.
 			if pred(t) {
-				return result.Ok[bool, struct{}]{Value: true}
+				return either.Right[struct{}, bool]{Value: true}
 			}
 			// Signal break from fold since the predicate is now false.
-			return result.Err[bool, struct{}]{}
+			return either.Left[struct{}, bool]{}
 		},
 	).UnwrapOr(false)
 }
@@ -52,13 +52,13 @@ func All[T any](iter Iterator[T], pred func(T) bool) bool {
 // The empty iterator returns false.
 func Any[T any](iter Iterator[T], pred func(T) bool) bool {
 	return TryFold(iter, false,
-		func(b bool, t T) result.Result[bool, struct{}] {
+		func(b bool, t T) either.Either[struct{}, bool] {
 			// Accumulator must be false at any point here.
 			if !pred(t) {
-				return result.Ok[bool, struct{}]{Value: false}
+				return either.Right[struct{}, bool]{Value: false}
 			}
 			// Signal break from fold since the predicate is now true.
-			return result.Err[bool, struct{}]{}
+			return either.Left[struct{}, bool]{}
 		},
 	).UnwrapOr(true)
 }
@@ -76,18 +76,18 @@ func Count[T any](iter Iterator[T]) uint64 {
 // If no element satisfies the predicate, returns Nothing.
 func Find[T any](iter Iterator[T], pred func(T) bool) option.Option[T] {
 	return TryFold(iter, struct{}{},
-		func(_ struct{}, t T) result.Result[struct{}, option.Option[T]] {
+		func(_ struct{}, t T) either.Either[option.Option[T], struct{}] {
 			// Haven't found it yet.
 			if pred(t) {
-				// Return Err to short-circuit out of here.
-				return result.Err[struct{}, option.Option[T]]{
+				// Return Left to short-circuit out of here.
+				return either.Left[option.Option[T], struct{}]{
 					Value: option.Some[T]{Value: t},
 				}
 			}
 			// Still haven't found it.
-			return result.Ok[struct{}, option.Option[T]]{}
+			return either.Right[option.Option[T], struct{}]{}
 		},
-	).UnwrapErrOr(option.Nothing[T]{})
+	).UnwrapLeftOr(option.Nothing[T]{})
 }
 
 // Folds every element into an accumulator by applying an operation, returning the final result.
@@ -110,18 +110,18 @@ func ForEach[T any](iter Iterator[T], f func(T)) {
 }
 
 // Tries to fold every element into an accumulator by applying an operation, returning the final result.
-// Short-circuits if the function returns Err, returning the Result.
-func TryFold[T any, A any, E any](
-	iter Iterator[T], a A, f func(A, T) result.Result[A, E],
-) result.Result[A, E] {
+// Short-circuits if the function returns Left, returning the Either.
+func TryFold[T any, L any, A any](
+	iter Iterator[T], a A, f func(A, T) either.Either[L, A],
+) either.Either[L, A] {
 	for item := iter.Next(); item.IsSome(); item = iter.Next() {
 		res := f(a, item.Unwrap())
-		if res.IsErr() {
+		if res.IsLeft() {
 			return res
 		}
 		a = res.Unwrap()
 	}
-	return result.Ok[A, E]{Value: a}
+	return either.Right[L, A]{Value: a}
 }
 
 // Advances the iterator by n and returns the nth next item.
@@ -131,7 +131,7 @@ func TryFold[T any, A any, E any](
 // Returns Nothing if n is greater or equal to the length of the iterator.
 func Nth[T any](iter Iterator[T], n uint64) option.Option[T] {
 	return option.AndThen(
-		AdvanceBy(iter, n).Ok(),
+		AdvanceBy(iter, n).Right(),
 		func(_ struct{}) option.Option[T] {
 			return iter.Next()
 		},
