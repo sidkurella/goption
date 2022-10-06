@@ -190,9 +190,6 @@ func TestStartsWithFunc(t *testing.T) {
 	})
 }
 
-// EndsWith
-// EndsWithFunc
-
 func TestEndsWith(t *testing.T) {
 	t.Run("ends with", func(t *testing.T) {
 		in := []int{1, 2, 3}
