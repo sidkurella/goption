@@ -1,5 +1,11 @@
 package sliceutil
 
+import (
+	"github.com/sidkurella/goption/iterator"
+	"github.com/sidkurella/goption/option"
+	"github.com/sidkurella/goption/pair"
+)
+
 // Map applies the given function to each element of T, collecting the results in a new slice.
 func Map[T any, U any](s []T, f func(T) U) []U {
 	ret := make([]U, 0, len(s))
@@ -62,4 +68,100 @@ func FoldRight[T any, A any](s []T, a A, f func(A, T) A) A {
 		a = f(a, s[max-i-1])
 	}
 	return a
+}
+
+// Returns the first element of the slice. Returns Nothing if it is empty.
+func First[T any](s []T) option.Option[T] {
+	if len(s) > 0 {
+		return option.Some[T]{Value: s[0]}
+	}
+	return option.Nothing[T]{}
+}
+
+// Returns the last element of the slice. Returns Nothing if it is empty.
+func Last[T any](s []T) option.Option[T] {
+	if len(s) > 0 {
+		return option.Some[T]{Value: s[len(s)-1]}
+	}
+	return option.Nothing[T]{}
+}
+
+// Returns if the slice `haystack` starts with the prefix `needle`.
+func StartsWith[T comparable](haystack []T, needle []T) bool {
+	return StartsWithFunc(haystack, needle, func(t1 T, t2 T) bool {
+		return t1 == t2
+	})
+}
+
+// Returns if the slice `haystack` starts with the prefix `needle`.
+// Equality is tested with the given function.
+func StartsWithFunc[T any](haystack []T, needle []T, isEqual func(T, T) bool) bool {
+	if len(haystack) < len(needle) {
+		return false
+	}
+	return iterator.All[pair.Pair[T, T]](
+		iterator.Zip[T, T](Iter(haystack), Iter(needle)),
+		func(t pair.Pair[T, T]) bool {
+			return isEqual(t.First, t.Second)
+		},
+	)
+}
+
+// Returns if the slice `haystack` ends with the suffix `needle`.
+func EndsWith[T comparable](haystack []T, needle []T) bool {
+	return EndsWithFunc(haystack, needle, func(t1 T, t2 T) bool {
+		return t1 == t2
+	})
+}
+
+// Returns if the slice `haystack` ends with with the suffix `needle`.
+// Equality is tested with the given function.
+func EndsWithFunc[T any](haystack []T, needle []T, isEqual func(T, T) bool) bool {
+	if len(haystack) < len(needle) {
+		return false
+	}
+	return iterator.All[pair.Pair[T, T]](
+		iterator.Zip[T, T](ReverseIter(haystack), ReverseIter(needle)),
+		func(t pair.Pair[T, T]) bool {
+			return isEqual(t.First, t.Second)
+		},
+	)
+}
+
+// Returns the slice `haystack` with the prefix `needle` removed.
+// If it doesn't start with the prefix, then the original `haystack` is returned.
+func StripPrefix[T comparable](haystack []T, needle []T) []T {
+	if StartsWith(haystack, needle) {
+		return haystack[len(needle):]
+	}
+	return haystack
+}
+
+// Returns the slice `haystack` with the prefix `needle` removed.
+// If it doesn't start with the prefix, then the original `haystack` is returned.
+// Equality is tested with the given function.
+func StripPrefixFunc[T any](haystack []T, needle []T, isEqual func(T, T) bool) []T {
+	if StartsWithFunc(haystack, needle, isEqual) {
+		return haystack[len(needle):]
+	}
+	return haystack
+}
+
+// Returns the slice `haystack` with the suffix `needle` removed.
+// If it doesn't end with the suffix, then the original `haystack` is returned.
+func StripSuffix[T comparable](haystack []T, needle []T) []T {
+	if EndsWith(haystack, needle) {
+		return haystack[:len(haystack)-len(needle)]
+	}
+	return haystack
+}
+
+// Returns the slice `haystack` with the suffix `needle` removed.
+// If it doesn't end with the suffix, then the original `haystack` is returned.
+// Equality is tested with the given function.
+func StripSuffixFunc[T any](haystack []T, needle []T, isEqual func(T, T) bool) []T {
+	if EndsWithFunc(haystack, needle, isEqual) {
+		return haystack[:len(haystack)-len(needle)]
+	}
+	return haystack
 }
