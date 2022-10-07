@@ -10,6 +10,14 @@ import (
 	"github.com/sidkurella/goption/pair"
 )
 
+type fakeCollection struct {
+	elems []int
+}
+
+func (f *fakeCollection) Append(is ...int) {
+	f.elems = append(f.elems, is...)
+}
+
 type fakeIterator struct {
 	elements []int
 	i        int
@@ -491,6 +499,31 @@ func TestCollect(t *testing.T) {
 		res := iterator.Collect[int](iter)
 		if !reflect.DeepEqual(res, iter.elements) {
 			t.Fail()
+		}
+	})
+	t.Run("empty", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{},
+		}
+		res := iterator.Collect[int](iter)
+		if !reflect.DeepEqual(res, []int{}) {
+			t.Fail()
+		}
+	})
+}
+
+func TestCollectInto(t *testing.T) {
+	t.Run("non-empty", func(t *testing.T) {
+		iter := &fakeIterator{
+			elements: []int{2, 1, 5, 3, 4},
+		}
+		c := &fakeCollection{}
+		res := iterator.CollectInto[int](iter, c)
+		if !reflect.DeepEqual(c.elems, iter.elements) {
+			t.Errorf("c: %v; iter: %v", c.elems, iter.elements)
+		}
+		if !reflect.DeepEqual(res.elems, iter.elements) {
+			t.Errorf("c: %v; iter: %v", res.elems, iter.elements)
 		}
 	})
 	t.Run("empty", func(t *testing.T) {

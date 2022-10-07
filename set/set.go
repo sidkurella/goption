@@ -67,6 +67,13 @@ func (s Set[K]) Insert(k K) bool {
 	return s.m.Insert(k, struct{}{}).IsSome()
 }
 
+// Append inserts the given values into the set.
+func (s Set[K]) Append(keys ...K) {
+	for _, k := range keys {
+		s.Insert(k)
+	}
+}
+
 // Deletes the value from the set. Returns if the value was already in the set or not.
 func (s Set[K]) Remove(k K) bool {
 	return s.m.Remove(k).IsSome()

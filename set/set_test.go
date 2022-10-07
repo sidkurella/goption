@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/sidkurella/goption/iterator"
 	"github.com/sidkurella/goption/option"
 	"github.com/sidkurella/goption/set"
+	"github.com/sidkurella/goption/sliceutil"
 )
 
 func TestFromSlice(t *testing.T) {
@@ -84,6 +86,24 @@ func TestInsert(t *testing.T) {
 	}
 	ok = s.Insert(2)
 	if !ok || !s.Contains(2) { // Should be in the set already.
+		t.Fail()
+	}
+}
+
+func TestAppend(t *testing.T) {
+	s := set.From(map[int]struct{}{
+		1: {},
+	})
+	s.Append(1, 2, 3, 4, 5, 6)
+	expected := set.From(map[int]struct{}{
+		1: {},
+		2: {},
+		3: {},
+		4: {},
+		5: {},
+		6: {},
+	})
+	if !reflect.DeepEqual(s, expected) {
 		t.Fail()
 	}
 }
@@ -410,4 +430,44 @@ func TestFold(t *testing.T) {
 	if out != float64(24) {
 		t.Fail()
 	}
+}
+
+func TestCollectInto(t *testing.T) {
+	t.Run("empty set", func(t *testing.T) {
+		i := sliceutil.Iter([]int{
+			1, 2, 3,
+		})
+		s := set.New[int]()
+		expected := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+			3: {},
+		})
+		out := iterator.CollectInto[int](i, s)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(s, expected) {
+			t.Fail()
+		}
+	})
+	t.Run("non-empty set", func(t *testing.T) {
+		i := sliceutil.Iter([]int{
+			1, 2, 3,
+		})
+		s := set.New[int]()
+		s.Insert(1)
+		expected := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+			3: {},
+		})
+		out := iterator.CollectInto[int](i, s)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(s, expected) {
+			t.Fail()
+		}
+	})
 }

@@ -79,6 +79,14 @@ func (m Map[K, V]) Insert(k K, v V) option.Option[V] {
 	return option.Nothing[V]{}
 }
 
+// Append adds the given key-value pairs to the map.
+// If a value V already exists for one of the keys, it will be overwritten.
+func (m Map[K, V]) Append(entries ...Entry[K, V]) {
+	for _, e := range entries {
+		_ = m.Insert(e.Key, e.Value)
+	}
+}
+
 // Len returns the number of key-value pairs in the map.
 func (m Map[K, V]) Len() int {
 	return len(m.m)
