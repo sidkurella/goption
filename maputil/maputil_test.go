@@ -6,8 +6,10 @@ import (
 	"testing"
 
 	"github.com/sidkurella/goption/either"
+	"github.com/sidkurella/goption/iterator"
 	"github.com/sidkurella/goption/maputil"
 	"github.com/sidkurella/goption/option"
+	"github.com/sidkurella/goption/sliceutil"
 )
 
 func TestContainsKey(t *testing.T) {
@@ -110,6 +112,50 @@ func TestInsert(t *testing.T) {
 		expected := option.Some[int]{Value: 3}
 		expectedGet := option.Some[int]{Value: 4}
 		if res != expected || !m.ContainsKey("key 3") || getVal != expectedGet {
+			t.Fail()
+		}
+	})
+}
+
+func TestAppend(t *testing.T) {
+	t.Run("no key conflict", func(t *testing.T) {
+		m := maputil.From(map[string]int{
+			"key 1": 1,
+			"key 2": 2,
+			"key 3": 3,
+		})
+		m.Append(
+			maputil.Entry[string, int]{Key: "key 4", Value: 4},
+			maputil.Entry[string, int]{Key: "key 5", Value: 5},
+		)
+		expected := maputil.From(map[string]int{
+			"key 1": 1,
+			"key 2": 2,
+			"key 3": 3,
+			"key 4": 4,
+			"key 5": 5,
+		})
+		if !reflect.DeepEqual(m, expected) {
+			t.Fail()
+		}
+	})
+	t.Run("key conflict", func(t *testing.T) {
+		m := maputil.From(map[string]int{
+			"key 1": 1,
+			"key 2": 2,
+			"key 3": 3,
+		})
+		m.Append(
+			maputil.Entry[string, int]{Key: "key 3", Value: 4},
+			maputil.Entry[string, int]{Key: "key 5", Value: 5},
+		)
+		expected := maputil.From(map[string]int{
+			"key 1": 1,
+			"key 2": 2,
+			"key 3": 4,
+			"key 5": 5,
+		})
+		if !reflect.DeepEqual(m, expected) {
 			t.Fail()
 		}
 	})
@@ -416,4 +462,52 @@ func TestExtend(t *testing.T) {
 		!reflect.DeepEqual(m2, expectedM2) {
 		t.Fail()
 	}
+}
+
+func TestCollectInto(t *testing.T) {
+	t.Run("empty map", func(t *testing.T) {
+		i := sliceutil.Iter([]maputil.Entry[int, string]{
+			{Key: 1, Value: "1"},
+			{Key: 2, Value: "2"},
+			{Key: 3, Value: "3"},
+			{Key: 4, Value: "4"},
+		})
+		m := maputil.New[int, string]()
+		expected := maputil.From(map[int]string{
+			1: "1",
+			2: "2",
+			3: "3",
+			4: "4",
+		})
+		out := iterator.CollectInto[maputil.Entry[int, string]](i, m)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(m, expected) {
+			t.Fail()
+		}
+	})
+	t.Run("non-empty map", func(t *testing.T) {
+		i := sliceutil.Iter([]maputil.Entry[int, string]{
+			{Key: 1, Value: "100"},
+			{Key: 2, Value: "2"},
+			{Key: 3, Value: "3"},
+			{Key: 4, Value: "4"},
+		})
+		m := maputil.New[int, string]()
+		m.Insert(1, "1")
+		expected := maputil.From(map[int]string{
+			1: "100",
+			2: "2",
+			3: "3",
+			4: "4",
+		})
+		out := iterator.CollectInto[maputil.Entry[int, string]](i, m)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(m, expected) {
+			t.Fail()
+		}
+	})
 }

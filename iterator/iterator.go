@@ -205,6 +205,13 @@ func Collect[T any](iter Iterator[T]) []T {
 	})
 }
 
+// CollectInto collects the iterator into the given collection.
+// The provided collection is modified to hold the elements in iter.
+func CollectInto[T any, C Collection[T]](iter Iterator[T], collection C) C {
+	collection.Append(Collect(iter)...)
+	return collection
+}
+
 // Consumes an iterator, producing two lists from it.
 // The first contains all the elements the predicate returned true for, and the second, false.
 func Partition[T any](iter Iterator[T], f func(T) bool) ([]T, []T) {
@@ -248,4 +255,10 @@ func Unzip[T any, U any](iter Iterator[pair.Pair[T, U]]) ([]T, []U) {
 // IntoIterator is an interface representing something that can turn into an Iterator.
 type IntoIterator[T any] interface {
 	IntoIter() Iterator[T]
+}
+
+// Collection represents a collection of elements of type T.
+type Collection[T any] interface {
+	// Inserts the provided elements into the collection.
+	Append(...T)
 }
