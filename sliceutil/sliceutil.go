@@ -8,6 +8,10 @@ import (
 
 // Map applies the given function to each element of T, collecting the results in a new slice.
 func Map[T any, U any](s []T, f func(T) U) []U {
+	if s == nil {
+		return nil
+	}
+
 	ret := make([]U, 0, len(s))
 	for _, v := range s {
 		ret = append(ret, f(v))
@@ -18,6 +22,10 @@ func Map[T any, U any](s []T, f func(T) U) []U {
 // IndexMap applies the given function to each element of T, collecting the results in a new slice.
 // The function may access the index of the element as well.
 func IndexMap[T any, U any](s []T, f func(int, T) U) []U {
+	if s == nil {
+		return nil
+	}
+
 	ret := make([]U, 0, len(s))
 	for i, v := range s {
 		ret = append(ret, f(i, v))
@@ -41,6 +49,10 @@ func Reverse[T any](s []T) []T {
 // Reversed returns a new slice that is the reverse of the provided one.
 // The old one is not modified.
 func Reversed[T any](s []T) []T {
+	if s == nil {
+		return nil
+	}
+
 	ret := make([]T, 0, len(s))
 	max := len(s)
 	for i := 0; i < max; i++ {
