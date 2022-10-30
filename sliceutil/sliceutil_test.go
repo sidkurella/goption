@@ -10,50 +10,144 @@ import (
 )
 
 func TestMap(t *testing.T) {
-	in := []int{1, 2, 3}
-	expected := []string{"2", "3", "4"}
-	out := sliceutil.Map(in, func(t int) string {
-		return strconv.Itoa(t + 1)
+	t.Run("populated list", func(t *testing.T) {
+		in := []int{1, 2, 3}
+		expected := []string{"2", "3", "4"}
+		out := sliceutil.Map(in, func(t int) string {
+			return strconv.Itoa(t + 1)
+		})
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
 	})
-	if !reflect.DeepEqual(out, expected) {
-		t.Fail()
-	}
+	t.Run("empty list", func(t *testing.T) {
+		in := []int{}
+		expected := []string{}
+		out := sliceutil.Map(in, func(t int) string {
+			return strconv.Itoa(t + 1)
+		})
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+	})
+	t.Run("nil list", func(t *testing.T) {
+		in := []int(nil)
+		expected := []string(nil)
+		out := sliceutil.Map(in, func(t int) string {
+			return strconv.Itoa(t + 1)
+		})
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+	})
 }
 
 func TestIndexMap(t *testing.T) {
-	in := []int64{1, 2, 3}
-	expected := []string{"1", "3", "5"}
-	out := sliceutil.IndexMap(in, func(i int, f int64) string {
-		return strconv.FormatInt(int64(i)+f, 10)
+	t.Run("populated list", func(t *testing.T) {
+		in := []int64{1, 2, 3}
+		expected := []string{"1", "3", "5"}
+		out := sliceutil.IndexMap(in, func(i int, f int64) string {
+			return strconv.FormatInt(int64(i)+f, 10)
+		})
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
 	})
-	if !reflect.DeepEqual(out, expected) {
-		t.Fail()
-	}
+	t.Run("empty list", func(t *testing.T) {
+		in := []int64{}
+		expected := []string{}
+		out := sliceutil.IndexMap(in, func(i int, f int64) string {
+			return strconv.FormatInt(int64(i)+f, 10)
+		})
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+	})
+	t.Run("nil list", func(t *testing.T) {
+		in := []int64(nil)
+		expected := []string(nil)
+		out := sliceutil.IndexMap(in, func(i int, f int64) string {
+			return strconv.FormatInt(int64(i)+f, 10)
+		})
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+	})
 }
 
 func TestReverse(t *testing.T) {
-	in := []int64{1, 2, 3}
-	expected := []int64{3, 2, 1}
-	out := sliceutil.Reverse(in)
-	if !reflect.DeepEqual(out, expected) {
-		t.Fail()
-	}
-	if !reflect.DeepEqual(in, expected) {
-		t.Fail() // Reverses in-place.
-	}
+	t.Run("populated list", func(t *testing.T) {
+		in := []int64{1, 2, 3}
+		expected := []int64{3, 2, 1}
+		out := sliceutil.Reverse(in)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(in, expected) {
+			t.Fail() // Reverses in-place.
+		}
+	})
+	t.Run("empty list", func(t *testing.T) {
+		in := []int64{}
+		expected := []int64{}
+		out := sliceutil.Reverse(in)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(in, expected) {
+			t.Fail() // Reverses in-place.
+		}
+	})
+	t.Run("nil list", func(t *testing.T) {
+		in := []int64(nil)
+		expected := []int64(nil)
+		out := sliceutil.Reverse(in)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(in, expected) {
+			t.Fail() // Reverses in-place.
+		}
+	})
 }
 
 func TestReversed(t *testing.T) {
-	in := []int64{1, 2, 3}
-	original := []int64{1, 2, 3}
-	expected := []int64{3, 2, 1}
-	out := sliceutil.Reversed(in)
-	if !reflect.DeepEqual(out, expected) {
-		t.Fail()
-	}
-	if !reflect.DeepEqual(in, original) {
-		t.Fail() // Does not reverse in place.
-	}
+	t.Run("populated list", func(t *testing.T) {
+		in := []int64{1, 2, 3}
+		original := []int64{1, 2, 3}
+		expected := []int64{3, 2, 1}
+		out := sliceutil.Reversed(in)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(in, original) {
+			t.Fail() // Does not reverse in place.
+		}
+	})
+	t.Run("empty list", func(t *testing.T) {
+		in := []int64{}
+		original := []int64{}
+		expected := []int64{}
+		out := sliceutil.Reversed(in)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(in, original) {
+			t.Fail() // Does not reverse in place.
+		}
+	})
+	t.Run("populated list", func(t *testing.T) {
+		in := []int64(nil)
+		original := []int64(nil)
+		expected := []int64(nil)
+		out := sliceutil.Reversed(in)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+		if !reflect.DeepEqual(in, original) {
+			t.Fail() // Does not reverse in place.
+		}
+	})
 }
 
 func TestFoldLeft(t *testing.T) {
