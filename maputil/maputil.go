@@ -44,6 +44,16 @@ func From[K comparable, V any](m map[K]V) Map[K, V] {
 	}
 }
 
+// FromSlice creates a map from the provided slice.
+// It uses the provided function to turn an element into a K, V pair.
+func FromSlice[T any, K comparable, V any](elems []T, f func(T) (K, V)) Map[K, V] {
+	ret := New[K, V]()
+	for _, e := range elems {
+		ret.Insert(f(e))
+	}
+	return ret
+}
+
 // Into returns a Go map from this map.
 // The provided map is not cloned. It is the same map by reference.
 func (m Map[K, V]) Into() map[K]V {
