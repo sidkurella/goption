@@ -511,3 +511,18 @@ func TestCollectInto(t *testing.T) {
 		}
 	})
 }
+
+func TestFromSlice(t *testing.T) {
+	elems := []string{"one", "2", "three"}
+	m := maputil.FromSlice(elems, func(s string) (int, string) {
+		return len(s), s + "-value"
+	})
+	expected := maputil.From(map[int]string{
+		1: "2-value",
+		3: "one-value",
+		5: "three-value",
+	})
+	if !reflect.DeepEqual(m, expected) {
+		t.Fail()
+	}
+}
