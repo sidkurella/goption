@@ -224,11 +224,22 @@ func FilterMap[K1 comparable, V1 any, K2 comparable, V2 any](
 
 // Fold calls f successively with each key-value pair in the map and the current accumulator.
 // The accumulator value is then updated with the new return value of f.
-// NOTE: Map has no defined iteration order. It may differ in successive runs.
+// NOTE: There is no defined iteration order on maps. The iteration order may differ in successive runs.
 // Do not use Fold with any function that is order-dependent.
 func Fold[K comparable, V any, A any](m Map[K, V], a A, f func(A, K, V) A) A {
 	for k, v := range m.m {
 		a = f(a, k, v)
 	}
 	return a
+}
+
+// Inverts a map, returning a new map where the keys are the values and the values are the keys.
+// NOTE: If keys K1 ... KN share the same value V, then the value of that corresponding key V
+// NOTE: in the returned map will be a random choice of K1 ... KN.
+func Invert[K comparable, V comparable](m Map[K, V]) Map[V, K] {
+	ret := New[V, K]()
+	m.ForEach(func(k K, v V) {
+		ret.Insert(v, k)
+	})
+	return ret
 }
