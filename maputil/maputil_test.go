@@ -526,3 +526,22 @@ func TestFromSlice(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestInvert(t *testing.T) {
+	in := maputil.From(map[int]string{
+		1: "100",
+		2: "2",
+		3: "3",
+		4: "4",
+	})
+	expected := maputil.From(map[string]int{
+		"100": 1,
+		"2":   2,
+		"3":   3,
+		"4":   4,
+	})
+	actual := maputil.Invert(in)
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fail()
+	}
+}
