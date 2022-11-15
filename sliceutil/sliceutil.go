@@ -177,3 +177,11 @@ func StripSuffixFunc[T any](haystack []T, needle []T, isEqual func(T, T) bool) [
 	}
 	return haystack
 }
+
+// Truncates the slice to the given max length.
+func Truncate[T any](s []T, maxLength int) []T {
+	if len(s) < maxLength {
+		return s
+	}
+	return s[:maxLength]
+}

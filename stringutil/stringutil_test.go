@@ -6,82 +6,51 @@ import (
 	"github.com/sidkurella/goption/stringutil"
 )
 
-func TestIter(t *testing.T) {
-	t.Run("ascii", func(t *testing.T) {
-		iter := stringutil.Iter("123")
-		if iter.Next().Unwrap() != '1' {
+func TestTruncate(t *testing.T) {
+	t.Run("ascii, length less than max", func(t *testing.T) {
+		expected := "123"
+		actual := stringutil.Truncate("123", 100)
+		if expected != actual {
 			t.Fail()
 		}
-		if iter.Next().Unwrap() != '2' {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != '3' {
-			t.Fail()
-		}
-		if !iter.Next().IsNothing() {
+	})
+	t.Run("ascii, length greater than max", func(t *testing.T) {
+		expected := "123"
+		actual := stringutil.Truncate("1234", 3)
+		if expected != actual {
 			t.Fail()
 		}
 	})
 	t.Run("UTF-8", func(t *testing.T) {
-		iter := stringutil.Iter("1£€3")
-		if iter.Next().Unwrap() != '1' {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != '£' {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != '€' {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != '3' {
-			t.Fail()
-		}
-		if !iter.Next().IsNothing() {
+		s := "1£€3"
+		expected := "1£€"
+		actual := stringutil.Truncate(s, 3)
+		if expected != actual {
 			t.Fail()
 		}
 	})
 }
 
-func TestByteIter(t *testing.T) {
-	t.Run("ascii", func(t *testing.T) {
-		iter := stringutil.ByteIter("123")
-		if iter.Next().Unwrap() != '1' {
+func TestTruncateBytes(t *testing.T) {
+	t.Run("ascii, length less than max", func(t *testing.T) {
+		expected := "123"
+		actual := stringutil.TruncateBytes("123", 100)
+		if expected != actual {
 			t.Fail()
 		}
-		if iter.Next().Unwrap() != '2' {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != '3' {
-			t.Fail()
-		}
-		if !iter.Next().IsNothing() {
+	})
+	t.Run("ascii, length greater than max", func(t *testing.T) {
+		expected := "123"
+		actual := stringutil.TruncateBytes("1234", 3)
+		if expected != actual {
 			t.Fail()
 		}
 	})
 	t.Run("UTF-8", func(t *testing.T) {
-		iter := stringutil.ByteIter("1£€3")
-		if iter.Next().Unwrap() != '1' {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != 0xC2 {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != 0xA3 {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != 0xE2 {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != 0x82 {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != 0xAC {
-			t.Fail()
-		}
-		if iter.Next().Unwrap() != '3' {
-			t.Fail()
-		}
-		if !iter.Next().IsNothing() {
+		s := "1£€3"
+		expected := "1£"
+		actual := stringutil.TruncateBytes(s, 3)
+		if expected != actual {
 			t.Fail()
 		}
 	})
