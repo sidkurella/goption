@@ -543,3 +543,20 @@ func TestStripSuffixFunc(t *testing.T) {
 		}
 	})
 }
+
+func TestTruncate(t *testing.T) {
+	t.Run("length less than max", func(t *testing.T) {
+		expected := []int{1, 2, 3}
+		actual := sliceutil.Truncate([]int{1, 2, 3}, 100)
+		if !reflect.DeepEqual(expected, actual) {
+			t.Fail()
+		}
+	})
+	t.Run("length greater than max", func(t *testing.T) {
+		expected := []int{1, 2, 3}
+		actual := sliceutil.Truncate([]int{1, 2, 3, 4}, 3)
+		if !reflect.DeepEqual(expected, actual) {
+			t.Fail()
+		}
+	})
+}
