@@ -1,6 +1,8 @@
 package option
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Implements Monad[Option[T], Option[U], T].
 type OptionMonad[T any, U any] struct {
@@ -8,194 +10,162 @@ type OptionMonad[T any, U any] struct {
 
 func (m OptionMonad[T, U]) Bind(val Option[T], f func(T) Option[U]) Option[U] {
 	return Match(val,
-		func(s Some[T]) Option[U] {
-			return f(s.Value)
+		func(t T) Option[U] {
+			return f(t)
 		},
-		func(_ Nothing[T]) Option[U] {
-			return Nothing[U]{}
+		func() Option[U] {
+			return Nothing[U]()
 		},
 	)
 }
 
 func (m OptionMonad[T, U]) Return(val T) Option[T] {
-	return Some[T]{Value: val}
+	return Some(val)
 }
 
 //=====================================================
+
+type optionVariant int
+
+const (
+	optionVariantNothing optionVariant = iota
+	optionVariantSome
+)
 
 // Option type. Either contains a value, or does not.
-type Option[T any] interface {
-	// Sentinel method to prevent creation of other option types.
-	isOption()
-
-	// Returns true if the option has a value.
-	IsSome() bool
-	// Returns true if the option has no value.
-	IsNothing() bool
-	// Returns the inner value of the option. Panics if there is no value.
-	Unwrap() T
-	// Returns the inner value of the option. If there is no value, returns the provided default.
-	UnwrapOr(defaultValue T) T
-	// Gets the inner value of the option. The second value indicates success or failure.
-	Get() (T, bool)
-	// Returns the inner value of the option. Panics with the provided message if there is no value.
-	Expect(msg string) T
-	// Returns true if there if the option contains a value and the value passes the provided predicate.
-	IsSomeAnd(predicate func(*T) bool) bool
-	// Returns Some[T] if there if the option contains a value and the value passes the provided predicate.
-	// Returns Nothing otherwise.
-	Filter(predicate func(*T) bool) Option[T]
-	// Returns opt2 if both options contain a value.
-	And(opt2 Option[T]) Option[T]
-	// Calls f with the inner value of the option. Returns Nothing if there is no value.
-	AndThen(f func(T) Option[T]) Option[T]
-	// Returns self if the option contains a value. Otherwise, returns opt2.
-	Or(opt2 Option[T]) Option[T]
-	// Returns self if the option contains a value. Otherwise, returns f.
-	OrElse(f func() Option[T]) Option[T]
-	// If exactly one of the options contains a value, returns that option. Otherwise, returns Nothing.
-	Xor(opt2 Option[T]) Option[T]
-
-	String() string
+type Option[T any] struct {
+	variant optionVariant
+	value   T
 }
 
 //=====================================================
 
-type Some[T any] struct {
-	Value T
-}
-
-func (s Some[T]) isOption() {
-}
-
-func (s Some[T]) IsSome() bool {
-	return true
-}
-
-func (s Some[T]) IsNothing() bool {
-	return false
-}
-
-func (s Some[T]) Unwrap() T {
-	return s.Value
-}
-
-func (s Some[T]) UnwrapOr(val T) T {
-	return s.Value
-}
-
-func (s Some[T]) Get() (T, bool) {
-	return s.Value, true
-}
-
-func (s Some[T]) Expect(msg string) T {
-	return s.Value
-}
-
-func (s Some[T]) IsSomeAnd(pred func(*T) bool) bool {
-	return pred(&s.Value)
-}
-
-func (s Some[T]) Filter(pred func(*T) bool) Option[T] {
-	if pred(&s.Value) {
-		return s
+// Creates a Some variant of the option, which holds the value.
+func Some[T any](t T) Option[T] {
+	return Option[T]{
+		variant: optionVariantSome,
+		value:   t,
 	}
-	return Nothing[T]{}
 }
 
-func (s Some[T]) And(opt2 Option[T]) Option[T] {
-	return And[T](s, opt2)
+// Creates a Nothing variant of the option, which holds no value.
+func Nothing[T any]() Option[T] {
+	return Option[T]{
+		variant: optionVariantNothing,
+	}
 }
 
-func (s Some[T]) AndThen(f func(T) Option[T]) Option[T] {
-	return AndThen[T](s, f)
+// Returns if the option contains a value (is Some).
+func (o Option[T]) IsSome() bool {
+	return o.variant == optionVariantSome
 }
 
-func (s Some[T]) Or(opt2 Option[T]) Option[T] {
-	return s
+// Returns if the option contains no value (is Nothing).
+func (o Option[T]) IsNothing() bool {
+	return o.variant == optionVariantNothing
 }
 
-func (s Some[T]) OrElse(f func() Option[T]) Option[T] {
-	return s
-}
-
-func (s Some[T]) Xor(opt2 Option[T]) Option[T] {
-	return Match(opt2,
-		func(_ Some[T]) Option[T] {
-			return Nothing[T]{}
+// Returns the value contained by the option, panicking with the given message if it is Nothing.
+func (o Option[T]) Expect(msg string) T {
+	return Match(o,
+		func(t T) T {
+			return t
 		},
-		func(_ Nothing[T]) Option[T] {
-			return s
+		func() T {
+			panic(msg)
 		},
 	)
 }
 
-func (s Some[T]) String() string {
-	return fmt.Sprintf("Some(%v)", s.Value)
+// Returns the value contained by the option, panicking if it is Nothing.
+func (o Option[T]) Unwrap() T {
+	return o.Expect("option contains nothing")
 }
 
-//=====================================================
-
-type Nothing[T any] struct {
+// Returns the value contained by the option. Returns the provided default if it is Nothing.
+func (o Option[T]) UnwrapOr(val T) T {
+	return Match(o,
+		func(t T) T {
+			return t
+		},
+		func() T {
+			return val
+		},
+	)
 }
 
-func (n Nothing[T]) isOption() {
+// Gets the value contained by the option. The second value indicates if the value is valid or not.
+func (o Option[T]) Get() (T, bool) {
+	return o.value, o.IsSome()
 }
 
-func (n Nothing[T]) IsSome() bool {
+// Returns if the option contains a value and the value matches the given predicate.
+func (o Option[T]) IsSomeAnd(pred func(*T) bool) bool {
+	if o.IsSome() {
+		return pred(&o.value)
+	}
 	return false
 }
 
-func (n Nothing[T]) IsNothing() bool {
-	return true
+// Returns the option if it contains a value matching the predicate. Otherwise, returns Nothing.
+func (o Option[T]) Filter(pred func(*T) bool) Option[T] {
+	if o.IsSomeAnd(pred) {
+		return o
+	}
+	return Nothing[T]()
 }
 
-func (n Nothing[T]) UnwrapOr(val T) T {
-	return val
+// Returns o if the option is Some. Otherwise, returns opt2.
+// opt2 is eagerly evaluated. If you need lazy evaluation, use OrElse.
+func (o Option[T]) Or(opt2 Option[T]) Option[T] {
+	return Match(o,
+		func(_ T) Option[T] {
+			return o
+		},
+		func() Option[T] {
+			return opt2
+		},
+	)
 }
 
-func (n Nothing[T]) Get() (T, bool) {
-	return *new(T), false
+// Returns self if the option contains a value. Otherwise, calls f and returns the provided option.
+// f is not called unless the option is Nothing (lazily-evaluated).
+func (o Option[T]) OrElse(f func() Option[T]) Option[T] {
+	return Match(o,
+		func(_ T) Option[T] {
+			return o
+		},
+		func() Option[T] {
+			return f()
+		},
+	)
 }
 
-func (n Nothing[T]) Expect(msg string) T {
-	panic(msg)
+// If exactly one of the options contains a value, returns that option. Otherwise, returns Nothing.
+func (o Option[T]) Xor(opt2 Option[T]) Option[T] {
+	if o.IsSome() {
+		if opt2.IsNothing() {
+			return o
+		}
+		return Nothing[T]()
+	}
+	// o is Nothing.
+	if opt2.IsSome() {
+		return opt2
+	}
+	return Nothing[T]()
 }
 
-func (n Nothing[T]) Unwrap() T {
-	return n.Expect("option type contains nothing")
-}
-
-func (n Nothing[T]) IsSomeAnd(pred func(*T) bool) bool {
-	return false
-}
-
-func (n Nothing[T]) Filter(pred func(*T) bool) Option[T] {
-	return n
-}
-
-func (n Nothing[T]) And(opt2 Option[T]) Option[T] {
-	return n
-}
-
-func (n Nothing[T]) AndThen(f func(T) Option[T]) Option[T] {
-	return n
-}
-
-func (n Nothing[T]) Or(opt2 Option[T]) Option[T] {
-	return opt2
-}
-
-func (n Nothing[T]) OrElse(f func() Option[T]) Option[T] {
-	return f()
-}
-
-func (n Nothing[T]) Xor(opt2 Option[T]) Option[T] {
-	return opt2
-}
-
-func (n Nothing[T]) String() string {
-	return fmt.Sprintf("Nothing")
+// Returns a string representation of this option.
+func (o Option[T]) String() string {
+	return Match(o,
+		func(t T) string {
+			return fmt.Sprintf("Some(%v)", t)
+		},
+		func() string {
+			return "Nothing"
+		},
+	)
 }
 
 //=====================================================
@@ -203,11 +173,11 @@ func (n Nothing[T]) String() string {
 // Returns opt2 if both options contain a value. Otherwise returns Nothing.
 func And[T any, U any](opt1 Option[T], opt2 Option[U]) Option[U] {
 	return Match(opt1,
-		func(_ Some[T]) Option[U] {
+		func(_ T) Option[U] {
 			return opt2
 		},
-		func(_ Nothing[T]) Option[U] {
-			return Nothing[U]{}
+		func() Option[U] {
+			return Nothing[U]()
 		},
 	)
 }
@@ -220,11 +190,11 @@ func AndThen[T any, U any](opt1 Option[T], f func(T) Option[U]) Option[U] {
 // Flattens an option of type Option[Option[T]] to just Option[T].
 func Flatten[T any](opt Option[Option[T]]) Option[T] {
 	return Match(opt,
-		func(s Some[Option[T]]) Option[T] {
-			return s.Value
+		func(t Option[T]) Option[T] {
+			return t
 		},
-		func(_ Nothing[Option[T]]) Option[T] {
-			return Nothing[T]{}
+		func() Option[T] {
+			return Nothing[T]()
 		},
 	)
 }
@@ -232,11 +202,11 @@ func Flatten[T any](opt Option[Option[T]]) Option[T] {
 // Maps the inner value of an option via f. Returns Nothing if there is no value.
 func Map[T any, U any](opt Option[T], f func(T) U) Option[U] {
 	return Match(opt,
-		func(s Some[T]) Option[U] {
-			return Some[U]{Value: f(s.Value)}
+		func(t T) Option[U] {
+			return Some(f(t))
 		},
-		func(_ Nothing[T]) Option[U] {
-			return Nothing[U]{}
+		func() Option[U] {
+			return Nothing[U]()
 		},
 	)
 }
@@ -245,11 +215,11 @@ func Map[T any, U any](opt Option[T], f func(T) U) Option[U] {
 // Arguments are eagerly evaluated. Consider MapOrElse if you are passing the result of a function call.
 func MapOr[T any, U any](opt Option[T], defaultValue U, f func(T) U) Option[U] {
 	return Match(opt,
-		func(s Some[T]) Option[U] {
-			return Some[U]{Value: f(s.Value)}
+		func(t T) Option[U] {
+			return Some(f(t))
 		},
-		func(_ Nothing[T]) Option[U] {
-			return Some[U]{Value: defaultValue}
+		func() Option[U] {
+			return Some(defaultValue)
 		},
 	)
 }
@@ -258,11 +228,11 @@ func MapOr[T any, U any](opt Option[T], defaultValue U, f func(T) U) Option[U] {
 // defaultFunc() is lazily evaluated.
 func MapOrElse[T any, U any](opt Option[T], defaultFunc func() U, f func(T) U) Option[U] {
 	return Match(opt,
-		func(s Some[T]) Option[U] {
-			return Some[U]{Value: f(s.Value)}
+		func(t T) Option[U] {
+			return Some(f(t))
 		},
-		func(_ Nothing[T]) Option[U] {
-			return Some[U]{Value: defaultFunc()}
+		func() Option[U] {
+			return Some(defaultFunc())
 		},
 	)
 }
@@ -270,12 +240,12 @@ func MapOrElse[T any, U any](opt Option[T], defaultFunc func() U, f func(T) U) O
 // Match calls someArm if the option is Some[T] and returns that result.
 // It calls nothingArm if the option is Nothing and returns that instead.
 // The two functions must return the same type.
-func Match[T any, U any](opt Option[T], someArm func(Some[T]) U, nothingArm func(Nothing[T]) U) U {
-	switch inner := opt.(type) {
-	case Some[T]:
-		return someArm(inner)
-	case Nothing[T]:
-		return nothingArm(inner)
+func Match[T any, U any](opt Option[T], someArm func(T) U, nothingArm func() U) U {
+	switch opt.variant {
+	case optionVariantSome:
+		return someArm(opt.value)
+	case optionVariantNothing:
+		return nothingArm()
 	default:
 		panic("option type is neither Some[T] nor Nothing[T]") // This should never happen.
 	}
@@ -285,9 +255,9 @@ func Match[T any, U any](opt Option[T], someArm func(Some[T]) U, nothingArm func
 // Returns Nothing if ok is false.
 func From[T any](val T, ok bool) Option[T] {
 	if ok {
-		return Some[T]{Value: val}
+		return Some(val)
 	}
-	return Nothing[T]{}
+	return Nothing[T]()
 }
 
 // Returns an option from the provided value and error.
