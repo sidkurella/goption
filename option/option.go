@@ -33,6 +33,7 @@ const (
 )
 
 // Option type. Either contains a value, or does not.
+// The default value is Nothing.
 type Option[T any] struct {
 	variant optionVariant
 	value   T
@@ -83,6 +84,7 @@ func (o Option[T]) Unwrap() T {
 }
 
 // Returns the value contained by the option. Returns the provided default if it is Nothing.
+// Default value is eagerly evaluated.
 func (o Option[T]) UnwrapOr(val T) T {
 	return Match(o,
 		func(t T) T {
@@ -101,10 +103,7 @@ func (o Option[T]) Get() (T, bool) {
 
 // Returns if the option contains a value and the value matches the given predicate.
 func (o Option[T]) IsSomeAnd(pred func(*T) bool) bool {
-	if o.IsSome() {
-		return pred(&o.value)
-	}
-	return false
+	return o.IsSome() && pred(&o.value)
 }
 
 // Returns the option if it contains a value matching the predicate. Otherwise, returns Nothing.
