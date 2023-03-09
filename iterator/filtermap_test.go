@@ -16,9 +16,9 @@ func TestFilterMap(t *testing.T) {
 	}
 	iter := iterator.FilterMap[int](i1, func(t int) option.Option[string] {
 		if t%2 == 0 {
-			return option.Some[string]{Value: strconv.Itoa(t * 10)}
+			return option.Some(strconv.Itoa(t * 10))
 		}
-		return option.Nothing[string]{}
+		return option.Nothing[string]()
 	})
 	calls := iterator.Collect[string](iter)
 	if !reflect.DeepEqual(calls, expected) {

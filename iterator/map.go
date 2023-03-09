@@ -19,11 +19,11 @@ func Map[T any, U any](iter Iterator[T], f func(T) U) *mapIterator[T, U] {
 
 func (m *mapIterator[T, U]) Next() option.Option[U] {
 	return option.Match(m.inner.Next(),
-		func(s option.Some[T]) option.Option[U] {
-			return option.Some[U]{Value: m.f(s.Value)}
+		func(t T) option.Option[U] {
+			return option.Some(m.f(t))
 		},
-		func(_ option.Nothing[T]) option.Option[U] {
-			return option.Nothing[U]{}
+		func() option.Option[U] {
+			return option.Nothing[U]()
 		},
 	)
 }

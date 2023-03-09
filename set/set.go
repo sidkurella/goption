@@ -179,16 +179,16 @@ func FilterMap[K1 comparable, K2 comparable](s Set[K1], f func(K1) option.Option
 		m: maputil.FilterMap(s.m,
 			func(k K1, _ struct{}) option.Option[maputil.Entry[K2, struct{}]] {
 				return option.Match(f(k),
-					func(s option.Some[K2]) option.Option[maputil.Entry[K2, struct{}]] {
-						return option.Some[maputil.Entry[K2, struct{}]]{
-							Value: maputil.Entry[K2, struct{}]{
-								Key:   s.Value,
+					func(k2 K2) option.Option[maputil.Entry[K2, struct{}]] {
+						return option.Some(
+							maputil.Entry[K2, struct{}]{
+								Key:   k2,
 								Value: struct{}{},
 							},
-						}
+						)
 					},
-					func(_ option.Nothing[K2]) option.Option[maputil.Entry[K2, struct{}]] {
-						return option.Nothing[maputil.Entry[K2, struct{}]]{}
+					func() option.Option[maputil.Entry[K2, struct{}]] {
+						return option.Nothing[maputil.Entry[K2, struct{}]]()
 					},
 				)
 			},

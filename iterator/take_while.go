@@ -21,7 +21,7 @@ func TakeWhile[T any](inner Iterator[T], f func(T) bool) *takeWhileIterator[T] {
 
 func (s *takeWhileIterator[T]) Next() option.Option[T] {
 	if s.done {
-		return option.Nothing[T]{}
+		return option.Nothing[T]()
 	}
 	val := s.inner.Next()
 	if val.IsNothing() {
@@ -32,5 +32,5 @@ func (s *takeWhileIterator[T]) Next() option.Option[T] {
 		return val
 	}
 	s.done = true
-	return option.Nothing[T]{}
+	return option.Nothing[T]()
 }

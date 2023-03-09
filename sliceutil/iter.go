@@ -11,9 +11,9 @@ type sliceIter[T any] struct {
 
 func (s *sliceIter[T]) Next() option.Option[T] {
 	if s.i >= len(s.data) {
-		return option.Nothing[T]{}
+		return option.Nothing[T]()
 	}
-	ret := option.Some[T]{Value: s.data[s.i]}
+	ret := option.Some(s.data[s.i])
 	s.i++
 	return ret
 }
@@ -34,9 +34,9 @@ type sliceReverseIter[T any] struct {
 
 func (s *sliceReverseIter[T]) Next() option.Option[T] {
 	if s.i < 0 {
-		return option.Nothing[T]{}
+		return option.Nothing[T]()
 	}
-	ret := option.Some[T]{Value: s.data[s.i]}
+	ret := option.Some(s.data[s.i])
 	s.i--
 	return ret
 }
@@ -57,9 +57,9 @@ type slicePointerIter[T any] struct {
 
 func (s *slicePointerIter[T]) Next() option.Option[*T] {
 	if s.i >= len(s.data) {
-		return option.Nothing[*T]{}
+		return option.Nothing[*T]()
 	}
-	ret := option.Some[*T]{Value: &(s.data[s.i])}
+	ret := option.Some(&(s.data[s.i]))
 	s.i++
 	return ret
 }
@@ -80,9 +80,9 @@ type sliceReversePointerIter[T any] struct {
 
 func (s *sliceReversePointerIter[T]) Next() option.Option[*T] {
 	if s.i < 0 {
-		return option.Nothing[*T]{}
+		return option.Nothing[*T]()
 	}
-	ret := option.Some[*T]{Value: &(s.data[s.i])}
+	ret := option.Some(&(s.data[s.i]))
 	s.i--
 	return ret
 }

@@ -25,11 +25,11 @@ type fakeIterator struct {
 
 func (f *fakeIterator) Next() option.Option[int] {
 	if f.i < len(f.elements) {
-		ret := option.Some[int]{Value: f.elements[f.i]}
+		ret := option.Some(f.elements[f.i])
 		f.i++
 		return ret
 	}
-	return option.Nothing[int]{}
+	return option.Nothing[int]()
 }
 
 type fakeStringIterator struct {
@@ -39,11 +39,11 @@ type fakeStringIterator struct {
 
 func (f *fakeStringIterator) Next() option.Option[string] {
 	if f.i < len(f.elements) {
-		ret := option.Some[string]{Value: f.elements[f.i]}
+		ret := option.Some(f.elements[f.i])
 		f.i++
 		return ret
 	}
-	return option.Nothing[string]{}
+	return option.Nothing[string]()
 }
 
 type fakePairIterator struct {
@@ -53,11 +53,11 @@ type fakePairIterator struct {
 
 func (f *fakePairIterator) Next() option.Option[pair.Pair[int, string]] {
 	if f.i < len(f.elements) {
-		ret := option.Some[pair.Pair[int, string]]{Value: f.elements[f.i]}
+		ret := option.Some(f.elements[f.i])
 		f.i++
 		return ret
 	}
-	return option.Nothing[pair.Pair[int, string]]{}
+	return option.Nothing[pair.Pair[int, string]]()
 }
 
 func TestAdvanceBy(t *testing.T) {
@@ -270,9 +270,9 @@ func TestTryFold(t *testing.T) {
 		ret := iterator.TryFold[int](iter, 1,
 			func(a int, t int) either.Either[int, int] {
 				if t < 4 {
-					return either.First[int, int]{Value: a * t}
+					return either.First[int, int](a * t)
 				}
-				return either.Second[int, int]{Value: a}
+				return either.Second[int](a)
 			},
 		)
 		if ret.UnwrapSecond() != 6 {
@@ -288,7 +288,7 @@ func TestTryFold(t *testing.T) {
 		}
 		ret := iterator.TryFold[int](iter, 1,
 			func(a int, t int) either.Either[int, int] {
-				return either.First[int, int]{Value: a * t}
+				return either.First[int, int](a * t)
 			},
 		)
 		if ret.Unwrap() != 120 {

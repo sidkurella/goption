@@ -68,7 +68,7 @@ func TestGet(t *testing.T) {
 			"key 3": 3,
 		})
 		res := m.Get("key 3")
-		expected := option.Some[int]{Value: 3}
+		expected := option.Some(3)
 		if res != expected {
 			t.Fail()
 		}
@@ -80,7 +80,7 @@ func TestGet(t *testing.T) {
 			"key 3": 3,
 		})
 		res := m.Get("key 4")
-		expected := option.Nothing[int]{}
+		expected := option.Nothing[int]()
 		if res != expected {
 			t.Fail()
 		}
@@ -96,7 +96,7 @@ func TestInsert(t *testing.T) {
 		})
 		res := m.Insert("key 4", 4)
 		getVal := m.Get("key 4")
-		expectedGet := option.Some[int]{Value: 4}
+		expectedGet := option.Some(4)
 		if !res.IsNothing() || !m.ContainsKey("key 4") || getVal != expectedGet {
 			t.Fail()
 		}
@@ -109,8 +109,8 @@ func TestInsert(t *testing.T) {
 		})
 		res := m.Insert("key 3", 4)
 		getVal := m.Get("key 3")
-		expected := option.Some[int]{Value: 3}
-		expectedGet := option.Some[int]{Value: 4}
+		expected := option.Some(3)
+		expectedGet := option.Some(4)
 		if res != expected || !m.ContainsKey("key 3") || getVal != expectedGet {
 			t.Fail()
 		}
@@ -169,9 +169,9 @@ func TestTryInsert(t *testing.T) {
 			"key 3": 3,
 		})
 		res := m.TryInsert("key 4", 4)
-		expectedRes := either.First[int, maputil.OccupiedError[string, int]]{Value: 4}
+		expectedRes := either.First[int, maputil.OccupiedError[string, int]](4)
 		getVal := m.Get("key 4")
-		expectedGet := option.Some[int]{Value: 4}
+		expectedGet := option.Some(4)
 		if res != expectedRes || !m.ContainsKey("key 4") || getVal != expectedGet {
 			t.Fail()
 		}
@@ -183,14 +183,14 @@ func TestTryInsert(t *testing.T) {
 			"key 3": 3,
 		})
 		res := m.TryInsert("key 3", 4)
-		expectedRes := either.Second[int, maputil.OccupiedError[string, int]]{
-			Value: maputil.OccupiedError[string, int]{
+		expectedRes := either.Second[int](
+			maputil.OccupiedError[string, int]{
 				Key:   "key 3",
 				Value: 3,
 			},
-		}
+		)
 		getVal := m.Get("key 3")
-		expectedGet := option.Some[int]{Value: 3}
+		expectedGet := option.Some(3)
 		if res != expectedRes || !m.ContainsKey("key 3") || getVal != expectedGet {
 			t.Fail()
 		}
@@ -206,7 +206,7 @@ func TestRemove(t *testing.T) {
 		})
 		res := m.Remove("key 4")
 		getVal := m.Get("key 4")
-		expectedGet := option.Nothing[int]{}
+		expectedGet := option.Nothing[int]()
 		if !res.IsNothing() || m.ContainsKey("key 4") || getVal != expectedGet {
 			t.Fail()
 		}
@@ -218,9 +218,9 @@ func TestRemove(t *testing.T) {
 			"key 3": 3,
 		})
 		res := m.Remove("key 3")
-		expectedRes := option.Some[int]{Value: 3}
+		expectedRes := option.Some(3)
 		getVal := m.Get("key 3")
-		expectedGet := option.Nothing[int]{}
+		expectedGet := option.Nothing[int]()
 		if res != expectedRes || m.ContainsKey("key 3") || getVal != expectedGet {
 			t.Fail()
 		}
@@ -372,15 +372,15 @@ func TestFilterMap(t *testing.T) {
 			}] = struct{}{}
 
 			if i%2 == 0 {
-				return option.Nothing[maputil.Entry[float64, int64]]{}
+				return option.Nothing[maputil.Entry[float64, int64]]()
 			}
 
-			return option.Some[maputil.Entry[float64, int64]]{
-				Value: maputil.Entry[float64, int64]{
+			return option.Some(
+				maputil.Entry[float64, int64]{
 					Key:   float64(i + 1),
 					Value: int64(len(s) * 2),
 				},
-			}
+			)
 		},
 	)
 	expected := maputil.From(map[float64]int64{

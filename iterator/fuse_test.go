@@ -15,9 +15,9 @@ type afterNothingIterator struct {
 func (a *afterNothingIterator) Next() option.Option[int] {
 	if a.i >= len(a.data) {
 		a.i = 0 // Loop after Nothing.
-		return option.Nothing[int]{}
+		return option.Nothing[int]()
 	}
-	ret := option.Some[int]{Value: a.data[a.i]}
+	ret := option.Some(a.data[a.i])
 	a.i++
 	return ret
 }

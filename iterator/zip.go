@@ -27,16 +27,16 @@ func Zip[T any, U any](first Iterator[T], second Iterator[U]) *zipIterator[T, U]
 func (z *zipIterator[T, U]) Next() option.Option[pair.Pair[T, U]] {
 	valFirst := z.first.Next()
 	if valFirst.IsNothing() {
-		return option.Nothing[pair.Pair[T, U]]{}
+		return option.Nothing[pair.Pair[T, U]]()
 	}
 	valSecond := z.second.Next()
 	if valSecond.IsNothing() {
-		return option.Nothing[pair.Pair[T, U]]{}
+		return option.Nothing[pair.Pair[T, U]]()
 	}
-	return option.Some[pair.Pair[T, U]]{
-		Value: pair.Pair[T, U]{
+	return option.Some(
+		pair.Pair[T, U]{
 			First:  valFirst.Unwrap(),
 			Second: valSecond.Unwrap(),
 		},
-	}
+	)
 }

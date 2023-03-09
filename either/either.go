@@ -6,327 +6,309 @@ import (
 	"github.com/sidkurella/goption/option"
 )
 
-// Implements Monad[Either[T1, E], Either[T2, E], T1].
-type EitherMonad[T1 any, E any, T2 any] struct {
+// Implements Monad[Either[F1, E], Either[F2, E], F1].
+type EitherMonad[F1 any, S any, F2 any] struct {
 }
 
-func (m EitherMonad[T1, E, T2]) Bind(val Either[T1, E], f func(T1) Either[T2, E]) Either[T2, E] {
+func (m EitherMonad[F1, S, F2]) Bind(val Either[F1, S], f func(F1) Either[F2, S]) Either[F2, S] {
 	return Match(val,
-		func(o First[T1, E]) Either[T2, E] {
-			return f(o.Value)
+		func(first F1) Either[F2, S] {
+			return f(first)
 		},
-		func(e Second[T1, E]) Either[T2, E] {
-			return Second[T2, E]{Value: e.Value}
+		func(s S) Either[F2, S] {
+			return Second[F2](s)
 		},
 	)
 }
 
 func (m EitherMonad[T1, E, T2]) Return(val T1) Either[T1, E] {
-	return First[T1, E]{Value: val}
+	return First[T1, E](val)
 }
+
+type eitherVariant int
+
+const (
+	eitherVariantFirst eitherVariant = iota
+	eitherVariantSecond
+)
 
 // Either type. Represents one of two possible values.
-// In the common success/failure case, represents either success (First) or failure (Second).
-type Either[T any, E any] interface {
-	// Sentinel method to prevent creation of other either types.
-	isEither()
-
-	// Returns true if the either is First.
-	IsFirst() bool
-	// Returns true if the either is First and matches the given predicate.
-	IsFirstAnd(pred func(*T) bool) bool
-	// Returns true if the either is Second.
-	IsSecond() bool
-	// Returns true if the either is Second and matches the given predicate.
-	IsSecondAnd(pred func(*E) bool) bool
-
-	// Converts from Either[T, E] to Option[T].
-	// Converts self into an Option[T], discarding the second value, if any.
-	First() option.Option[T]
-	// Converts from Either[T, E] to Option[E].
-	// Converts self into an Option[E], and discarding the first value, if any.
-	Second() option.Option[E]
-
-	// Unwrap returns the contained First value. Panics if it is Second.
-	Unwrap() T
-	// Returns the contained First value. If the either is Second, returns the provided default.
-	// Default value is eagerly evaluated. Consider using UnwrapOrElse if providing the either of a function call.
-	UnwrapOr(defaultValue T) T
-	// Returns the contained First value. If the either is Second, computes the default from the provided closure.
-	UnwrapOrElse(defaultFunc func(E) T) T
-	// Returns the contained Second value. Panics if it is First.
-	UnwrapSecond() E
-	// Returns the contained Second value. If the either is First, returns the provided default.
-	UnwrapSecondOr(defaultValue E) E
-	// Returns the contained Second value. If the either is First, computes the default from the provided closure.
-	UnwrapSecondOrElse(defaultFunc func(T) E) E
-
-	// Returns the contained First value. Panics with the given message if the either is not First.
-	Expect(msg string) T
-	// Returns the contained Second value. Panics with the given message if the either is not Second.
-	ExpectSecond(msg string) E
-
-	String() string
+// The default value is First(*new(F)) (i.e. First variant containing the zero value of F).
+type Either[F any, S any] struct {
+	variant eitherVariant
+	first   F
+	second  S
 }
 
 //=====================================================
 
-type First[T any, E any] struct {
-	Value T
+func First[F any, S any](f F) Either[F, S] {
+	return Either[F, S]{
+		variant: eitherVariantFirst,
+		first:   f,
+	}
 }
 
-func (o First[T, E]) isEither() {
+func Second[F any, S any](s S) Either[F, S] {
+	return Either[F, S]{
+		variant: eitherVariantSecond,
+		second:  s,
+	}
 }
 
-func (o First[T, E]) IsFirst() bool {
-	return true
+// Returns true if the either is First.
+func (e Either[F, S]) IsFirst() bool {
+	return e.variant == eitherVariantFirst
 }
 
-func (o First[T, E]) IsSecond() bool {
-	return false
+// Returns true if the either is First and matches the given predicate.
+func (e Either[F, S]) IsFirstAnd(pred func(*F) bool) bool {
+	return e.IsFirst() && pred(&e.first)
 }
 
-func (o First[T, E]) First() option.Option[T] {
-	return option.Some[T]{Value: o.Value}
+// Returns true if the either is Second.
+func (e Either[F, S]) IsSecond() bool {
+	return e.variant == eitherVariantSecond
 }
 
-func (o First[T, E]) IsFirstAnd(pred func(*T) bool) bool {
-	return pred(&o.Value)
+// Returns true if the either is Second and matches the given predicate.
+func (e Either[F, S]) IsSecondAnd(pred func(*S) bool) bool {
+	return e.IsSecond() && pred(&e.second)
 }
 
-func (o First[T, E]) Second() option.Option[E] {
-	return option.Nothing[E]{}
+// Converts from Either[F, S] to Option[F].
+// Converts self into an Option[F], discarding the second value, if any.
+func (e Either[F, S]) First() option.Option[F] {
+	if e.IsFirst() {
+		return option.Some(e.first)
+	}
+	return option.Nothing[F]()
 }
 
-func (o First[T, E]) IsSecondAnd(pred func(*E) bool) bool {
-	return false
+// Converts from Either[F, S] to Option[S].
+// Converts self into an Option[S], and discarding the first value, if any.
+func (e Either[F, S]) Second() option.Option[S] {
+	if e.IsSecond() {
+		return option.Some(e.second)
+	}
+	return option.Nothing[S]()
 }
 
-func (o First[T, E]) Expect(_ string) T {
-	return o.Value
+// Returns the contained First value. Panics with the given message if the either is not First.
+func (e Either[F, S]) Expect(msg string) F {
+	return Match(e,
+		func(f F) F {
+			return f
+		},
+		func(s S) F {
+			panic(msg)
+		},
+	)
 }
 
-func (o First[T, E]) ExpectSecond(msg string) E {
-	panic(msg)
+// Returns the contained Second value. Panics with the given message if the either is not Second.
+func (e Either[F, S]) ExpectSecond(msg string) S {
+	return Match(e,
+		func(f F) S {
+			panic(msg)
+		},
+		func(s S) S {
+			return s
+		},
+	)
 }
 
-func (o First[T, E]) Unwrap() T {
-	return o.Value
+// Unwrap returns the contained First value. Panics if it is Second.
+func (e Either[F, S]) Unwrap() F {
+	return e.Expect("either was Second")
 }
 
-func (o First[T, E]) UnwrapOr(_ T) T {
-	return o.Value
+// Returns the contained First value. If the either is Second, returns the provided default.
+// Default value is eagerly evaluated. Consider using UnwrapOrElse if providing the return value of a function call.
+func (e Either[F, S]) UnwrapOr(defaultValue F) F {
+	return Match(e,
+		func(f F) F {
+			return f
+		},
+		func(s S) F {
+			return defaultValue
+		},
+	)
 }
 
-func (o First[T, E]) UnwrapOrElse(_ func(E) T) T {
-	return o.Value
+// Returns the contained First value. If the either is Second, computes the default from the provided closure.
+func (e Either[F, S]) UnwrapOrElse(defaultFunc func(S) F) F {
+	return Match(e,
+		func(f F) F {
+			return f
+		},
+		func(s S) F {
+			return defaultFunc(s)
+		},
+	)
 }
 
-func (o First[T, E]) UnwrapSecond() E {
-	panic(o.Value)
+// Returns the contained Second value. Panics if it is First.
+func (e Either[F, S]) UnwrapSecond() S {
+	return e.ExpectSecond("either was First")
 }
 
-func (o First[T, E]) UnwrapSecondOr(defaultValue E) E {
-	return defaultValue
+// Returns the contained Second value. If the either is First, returns the provided default.
+func (e Either[F, S]) UnwrapSecondOr(defaultValue S) S {
+	return Match(e,
+		func(f F) S {
+			return defaultValue
+		},
+		func(s S) S {
+			return s
+		},
+	)
 }
 
-func (o First[T, E]) UnwrapSecondOrElse(defaultFunc func(T) E) E {
-	return defaultFunc(o.Value)
+// Returns the contained Second value. If the either is First, computes the default from the provided closure.
+func (e Either[F, S]) UnwrapSecondOrElse(defaultFunc func(F) S) S {
+	return Match(e,
+		func(f F) S {
+			return defaultFunc(f)
+		},
+		func(s S) S {
+			return s
+		},
+	)
 }
 
-func (o First[T, E]) String() string {
-	return fmt.Sprintf("First(%v)", o.Value)
-}
-
-//=====================================================
-
-type Second[T any, E any] struct {
-	Value E
-}
-
-func (e Second[T, E]) isEither() {
-}
-
-func (e Second[T, E]) IsFirst() bool {
-	return false
-}
-
-func (e Second[T, E]) IsFirstAnd(pred func(*T) bool) bool {
-	return false
-}
-
-func (e Second[T, E]) IsSecond() bool {
-	return true
-}
-
-func (e Second[T, E]) IsSecondAnd(pred func(*E) bool) bool {
-	return pred(&e.Value)
-}
-
-func (e Second[T, E]) First() option.Option[T] {
-	return option.Nothing[T]{}
-}
-
-func (e Second[T, E]) Second() option.Option[E] {
-	return option.Some[E]{Value: e.Value}
-}
-
-func (e Second[T, E]) Expect(msg string) T {
-	panic(msg)
-}
-
-func (e Second[T, E]) ExpectSecond(_ string) E {
-	return e.Value
-}
-
-func (e Second[T, E]) Unwrap() T {
-	panic(e.Value)
-}
-
-func (e Second[T, E]) UnwrapOr(defaultValue T) T {
-	return defaultValue
-}
-
-func (e Second[T, E]) UnwrapOrElse(f func(E) T) T {
-	return f(e.Value)
-}
-
-func (e Second[T, E]) UnwrapSecond() E {
-	return e.Value
-}
-
-func (e Second[T, E]) UnwrapSecondOr(_ E) E {
-	return e.Value
-}
-
-func (e Second[T, E]) UnwrapSecondOrElse(_ func(T) E) E {
-	return e.Value
-}
-
-func (e Second[T, E]) String() string {
-	return fmt.Sprintf("Second(%v)", e.Value)
+// Returns a string representation of this Either.
+func (e Either[F, S]) String() string {
+	return Match(e,
+		func(f F) string {
+			return fmt.Sprintf("First(%v)", f)
+		},
+		func(s S) string {
+			return fmt.Sprintf("Second(%v)", s)
+		},
+	)
 }
 
 //=====================================================
 
 // Returns res2 if res1 is First, otherwise returns the Second value of res1.
-func And[T any, E any, U any](res1 Either[T, E], res2 Either[U, E]) Either[U, E] {
-	return EitherMonad[T, E, U]{}.Bind(
+func And[F any, S any, U any](res1 Either[F, S], res2 Either[U, S]) Either[U, S] {
+	return EitherMonad[F, S, U]{}.Bind(
 		res1,
-		func(_ T) Either[U, E] {
+		func(_ F) Either[U, S] {
 			return res2
 		},
 	)
 }
 
-// Returns f(T) if res1 is First[T], otherwise returns the Second value of res1.
-func AndThen[T any, E any, U any](res1 Either[T, E], f func(T) Either[U, E]) Either[U, E] {
-	return EitherMonad[T, E, U]{}.Bind(res1, f)
+// Returns f(F) if res1 is First[F], otherwise returns the Second value of res1.
+func AndThen[F any, S any, U any](res1 Either[F, S], f func(F) Either[U, S]) Either[U, S] {
+	return EitherMonad[F, S, U]{}.Bind(res1, f)
 }
 
-// Flattens a either of type Either[Either[T, E], E] to just Either[T, E].
-func Flatten[T any, E any](res Either[Either[T, E], E]) Either[T, E] {
+// Flattens a either of type Either[Either[F, S], S] to just Either[F, S].
+func Flatten[F any, S any](res Either[Either[F, S], S]) Either[F, S] {
 	return Match(res,
-		func(o First[Either[T, E], E]) Either[T, E] {
-			return o.Value
+		func(f Either[F, S]) Either[F, S] {
+			return f
 		},
-		func(e Second[Either[T, E], E]) Either[T, E] {
-			return Second[T, E]{Value: e.Value}
+		func(s S) Either[F, S] {
+			return Second[F](s)
 		},
 	)
 }
 
-// Maps a Either[T, E] to Either[U, E] by applying a function to a contained First value.
+// Maps a Either[F, S] to Either[U, S] by applying a function to a contained First value.
 // Leaves an Second value untouched.
-func Map[T any, E any, U any](res Either[T, E], f func(T) U) Either[U, E] {
+func Map[F any, S any, U any](res Either[F, S], f func(F) U) Either[U, S] {
 	return Match(res,
-		func(o First[T, E]) Either[U, E] {
-			return First[U, E]{Value: f(o.Value)}
+		func(first F) Either[U, S] {
+			return First[U, S](f(first))
 		},
-		func(e Second[T, E]) Either[U, E] {
-			return Second[U, E]{Value: e.Value}
+		func(s S) Either[U, S] {
+			return Second[U](s)
 		},
 	)
 }
 
-// Maps a Either[T, E] to Either[T, F] by applying a function to a contained Second value.
+// Maps a Either[F, S] to Either[F, S2] by applying a function to a contained Second value.
 // Leaves an First value untouched.
-func MapSecond[T any, E any, F any](res Either[T, E], f func(E) F) Either[T, F] {
+func MapSecond[F any, S any, S2 any](res Either[F, S], f func(S) S2) Either[F, S2] {
 	return Match(res,
-		func(o First[T, E]) Either[T, F] {
-			return First[T, F]{Value: o.Value}
+		func(first F) Either[F, S2] {
+			return First[F, S2](first)
 		},
-		func(e Second[T, E]) Either[T, F] {
-			return Second[T, F]{Value: f(e.Value)}
+		func(s S) Either[F, S2] {
+			return Second[F](f(s))
 		},
 	)
 }
 
-// Maps a Either[T, E] to Either[U, E] by applying a function to a contained First value.
+// Maps a Either[F, S] to Either[U, S] by applying a function to a contained First value.
 // Returns the provided default if it is Second.
-// Default value is eagerly evaluated. Consider using MapOrElse if you are passing the either of a function call.
-func MapOr[T any, E any, U any](res Either[T, E], defaultValue U, f func(T) U) Either[U, E] {
+// Default value is eagerly evaluated. Consider using MapOrElse if you are passing the return value of a function call.
+func MapOr[F any, S any, U any](res Either[F, S], defaultValue U, f func(F) U) Either[U, S] {
 	return Match(res,
-		func(o First[T, E]) Either[U, E] {
-			return First[U, E]{Value: f(o.Value)}
+		func(first F) Either[U, S] {
+			return First[U, S](f(first))
 		},
-		func(e Second[T, E]) Either[U, E] {
-			return First[U, E]{Value: defaultValue}
+		func(s S) Either[U, S] {
+			return First[U, S](defaultValue)
 		},
 	)
 }
 
-// Maps a Either[T, E] to Either[U, E] by applying a function to a contained First value.
+// Maps a Either[F, S] to Either[U, S] by applying a function to a contained First value.
 // Returns the either produced by the default function if it is Second.
 // Default is lazily evaluated.
-func MapOrElse[T any, E any, U any](res Either[T, E], defaultFunc func(E) U, f func(T) U) Either[U, E] {
+func MapOrElse[F any, S any, U any](res Either[F, S], defaultFunc func(S) U, f func(F) U) Either[U, S] {
 	return Match(res,
-		func(o First[T, E]) Either[U, E] {
-			return First[U, E]{Value: f(o.Value)}
+		func(first F) Either[U, S] {
+			return First[U, S](f(first))
 		},
-		func(e Second[T, E]) Either[U, E] {
-			return First[U, E]{Value: defaultFunc(e.Value)}
+		func(s S) Either[U, S] {
+			return First[U, S](defaultFunc(s))
 		},
 	)
 }
 
 // Returns res2 if the either is Second, otherwise returns the First value of res1.
 // res2 is eagerly evaluated. Consider using OrElse if you are passing the either of a function call.
-func Or[T any, E any, F any](res1 Either[T, E], res2 Either[T, F]) Either[T, F] {
+func Or[F any, S any, S2 any](res1 Either[F, S], res2 Either[F, S2]) Either[F, S2] {
 	return Match(res1,
-		func(o First[T, E]) Either[T, F] {
-			return First[T, F]{Value: o.Value}
+		func(f F) Either[F, S2] {
+			return First[F, S2](f)
 		},
-		func(_ Second[T, E]) Either[T, F] {
+		func(s S) Either[F, S2] {
 			return res2
 		},
 	)
 }
 
-// Returns f(E) if the either is Second[E], otherwise returns the First value of res1.
+// Returns f(S) if the either is Second[S], otherwise returns the First value of res1.
 // f is lazily evaluated.
-func OrElse[T any, E any, F any](res1 Either[T, E], f func(E) Either[T, F]) Either[T, F] {
+func OrElse[F any, S any, S2 any](res1 Either[F, S], f func(S) Either[F, S2]) Either[F, S2] {
 	return Match(res1,
-		func(o First[T, E]) Either[T, F] {
-			return First[T, F]{Value: o.Value}
+		func(f F) Either[F, S2] {
+			return First[F, S2](f)
 		},
-		func(e Second[T, E]) Either[T, F] {
-			return f(e.Value)
+		func(s S) Either[F, S2] {
+			return f(s)
 		},
 	)
 }
 
-// Match calls firstArm if the either is First[T] and returns that either.
-// It calls secondArm if the either is Second[E] and returns that instead.
+// Match calls firstArm if the either is First[F] and returns that.
+// It calls secondArm if the either is Second[S] and returns that instead.
 // The two functions must return the same type.
-func Match[T any, E any, U any](res Either[T, E], firstArm func(First[T, E]) U, secondArm func(Second[T, E]) U) U {
-	switch inner := res.(type) {
-	case First[T, E]:
-		return firstArm(inner)
-	case Second[T, E]:
-		return secondArm(inner)
+func Match[F any, S any, T any](e Either[F, S], firstArm func(f F) T, secondArm func(s S) T) T {
+	switch e.variant {
+	case eitherVariantFirst:
+		return firstArm(e.first)
+	case eitherVariantSecond:
+		return secondArm(e.second)
 	default:
-		panic("either type is neither First[T, E] nor Second[T, E]") // This should never happen.
+		panic("either type is neither First[F, S] nor Second[F, S]") // This should never happen.
 	}
 }
 
@@ -334,11 +316,11 @@ func Match[T any, E any, U any](res Either[T, E], firstArm func(First[T, E]) U, 
 // Arguments are eagerly evaluated; consider using FirstOrElse if passing the either of a function call.
 func FirstOr[T any, E any](opt option.Option[T], second E) Either[T, E] {
 	return option.Match(opt,
-		func(s option.Some[T]) Either[T, E] {
-			return First[T, E]{Value: s.Value}
+		func(t T) Either[T, E] {
+			return First[T, E](t)
 		},
-		func(n option.Nothing[T]) Either[T, E] {
-			return Second[T, E]{Value: second}
+		func() Either[T, E] {
+			return Second[T](second)
 		},
 	)
 }
@@ -347,11 +329,11 @@ func FirstOr[T any, E any](opt option.Option[T], second E) Either[T, E] {
 // f is lazily evaluated.
 func FirstOrElse[T any, E any](opt option.Option[T], f func() E) Either[T, E] {
 	return option.Match(opt,
-		func(s option.Some[T]) Either[T, E] {
-			return First[T, E]{Value: s.Value}
+		func(t T) Either[T, E] {
+			return First[T, E](t)
 		},
-		func(n option.Nothing[T]) Either[T, E] {
-			return Second[T, E]{Value: f()}
+		func() Either[T, E] {
+			return Second[T](f())
 		},
 	)
 }
@@ -360,7 +342,7 @@ func FirstOrElse[T any, E any](opt option.Option[T], f func() E) Either[T, E] {
 // Returns Second[err] if err != nil.
 func From[T any](value T, err error) Either[T, error] {
 	if err != nil {
-		return Second[T, error]{Value: err}
+		return Second[T](err)
 	}
-	return First[T, error]{Value: value}
+	return First[T, error](value)
 }

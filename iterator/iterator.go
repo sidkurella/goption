@@ -23,10 +23,10 @@ func AdvanceBy[T any](iter Iterator[T], n uint64) either.Either[struct{}, uint64
 	for i := uint64(0); i < n; i++ {
 		obj := iter.Next()
 		if obj.IsNothing() {
-			return either.Second[struct{}, uint64]{Value: i}
+			return either.Second[struct{}](i)
 		}
 	}
-	return either.First[struct{}, uint64]{}
+	return either.First[struct{}, uint64](struct{}{})
 }
 
 // Tests if every element of the iterator matches the predicate.
@@ -38,10 +38,10 @@ func All[T any](iter Iterator[T], pred func(T) bool) bool {
 		func(_ bool, t T) either.Either[bool, struct{}] {
 			// Accumulator must be true at any point here.
 			if pred(t) {
-				return either.First[bool, struct{}]{Value: true}
+				return either.First[bool, struct{}](true)
 			}
 			// Signal break from fold since the predicate is now false.
-			return either.Second[bool, struct{}]{}
+			return either.Second[bool](struct{}{})
 		},
 	).UnwrapOr(false)
 }
@@ -55,10 +55,10 @@ func Any[T any](iter Iterator[T], pred func(T) bool) bool {
 		func(b bool, t T) either.Either[bool, struct{}] {
 			// Accumulator must be false at any point here.
 			if !pred(t) {
-				return either.First[bool, struct{}]{Value: false}
+				return either.First[bool, struct{}](false)
 			}
 			// Signal break from fold since the predicate is now true.
-			return either.Second[bool, struct{}]{}
+			return either.Second[bool](struct{}{})
 		},
 	).UnwrapOr(true)
 }
@@ -80,14 +80,14 @@ func Find[T any](iter Iterator[T], pred func(T) bool) option.Option[T] {
 			// Haven't found it yet.
 			if pred(t) {
 				// Return Second to short-circuit out of here.
-				return either.Second[struct{}, option.Option[T]]{
-					Value: option.Some[T]{Value: t},
-				}
+				return either.Second[struct{}](
+					option.Some(t),
+				)
 			}
 			// Still haven't found it.
-			return either.First[struct{}, option.Option[T]]{}
+			return either.First[struct{}, option.Option[T]](struct{}{})
 		},
-	).UnwrapSecondOr(option.Nothing[T]{})
+	).UnwrapSecondOr(option.Nothing[T]())
 }
 
 // Folds every element into an accumulator by applying an operation, returning the final either.
@@ -121,7 +121,7 @@ func TryFold[T any, A any, E any](
 		}
 		a = res.Unwrap()
 	}
-	return either.First[A, E]{Value: a}
+	return either.First[A, E](a)
 }
 
 // Advances the iterator by n and returns the nth next item.
@@ -141,9 +141,9 @@ func Nth[T any](iter Iterator[T], n uint64) option.Option[T] {
 // Last returns the final element of the iterator, before it returns Nothing.
 // Returns Nothing if the iterator is empty.
 func Last[T any](iter Iterator[T]) option.Option[T] {
-	return Fold[T, option.Option[T]](iter, option.Nothing[T]{},
+	return Fold(iter, option.Nothing[T](),
 		func(_ option.Option[T], t T) option.Option[T] {
-			return option.Some[T]{Value: t}
+			return option.Some(t)
 		},
 	)
 }
@@ -162,13 +162,13 @@ func Max[T constraints.Ordered](iter Iterator[T]) option.Option[T] {
 // Returns the last element if multiple elements are equally maximal.
 // Returns Nothing if the iterator is empty.
 func MaxBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
-	return Fold[T, option.Option[T]](iter, option.Nothing[T]{},
+	return Fold(iter, option.Nothing[T](),
 		func(o option.Option[T], t T) option.Option[T] {
 			val, first := o.Get()
 			if !first || !less(t, val) { // If there is no current value, or the new is >= than the current, update.
 				val = t
 			}
-			return option.Some[T]{Value: val}
+			return option.Some(val)
 		},
 	)
 }
@@ -187,13 +187,13 @@ func Min[T constraints.Ordered](iter Iterator[T]) option.Option[T] {
 // Returns the first element if multiple elements are equally minimal.
 // Returns Nothing if the iterator is empty.
 func MinBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
-	return Fold[T, option.Option[T]](iter, option.Nothing[T]{},
+	return Fold(iter, option.Nothing[T](),
 		func(o option.Option[T], t T) option.Option[T] {
 			val, first := o.Get()
 			if !first || less(t, val) { // If there is no current value, or the new is < than the current, update.
 				val = t
 			}
-			return option.Some[T]{Value: val}
+			return option.Some(val)
 		},
 	)
 }
@@ -234,11 +234,11 @@ func Position[T any](iter Iterator[T], pred func(T) bool) option.Option[uint64] 
 	i := uint64(0)
 	for item := iter.Next(); item.IsSome(); item = iter.Next() {
 		if pred(item.Unwrap()) {
-			return option.Some[uint64]{Value: i}
+			return option.Some(i)
 		}
 		i++
 	}
-	return option.Nothing[uint64]{}
+	return option.Nothing[uint64]()
 }
 
 // Consumes an entire iterator of pairs, producing two collections, for the first and second elements respectively.
