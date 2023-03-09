@@ -24,5 +24,5 @@ func (f *filterMapIterator[T, U]) Next() option.Option[U] {
 			return res
 		}
 	}
-	return option.Nothing[U]{}
+	return option.Nothing[U]()
 }

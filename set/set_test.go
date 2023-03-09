@@ -401,9 +401,9 @@ func TestFilterMap(t *testing.T) {
 	out := set.FilterMap(s,
 		func(k int) option.Option[string] {
 			if k%2 == 0 {
-				return option.Nothing[string]{}
+				return option.Nothing[string]()
 			}
-			return option.Some[string]{Value: strconv.Itoa(k * 2)}
+			return option.Some(strconv.Itoa(k * 2))
 		},
 	)
 	expected := set.From(map[string]struct{}{

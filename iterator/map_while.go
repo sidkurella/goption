@@ -18,11 +18,11 @@ func MapWhile[T any, U any](inner Iterator[T], pred func(T) option.Option[U]) *m
 
 func (m *mapWhileIterator[T, U]) Next() option.Option[U] {
 	return option.Match(m.inner.Next(),
-		func(s option.Some[T]) option.Option[U] {
-			return m.pred(s.Value)
+		func(t T) option.Option[U] {
+			return m.pred(t)
 		},
-		func(n option.Nothing[T]) option.Option[U] {
-			return option.Nothing[U]{}
+		func() option.Option[U] {
+			return option.Nothing[U]()
 		},
 	)
 }

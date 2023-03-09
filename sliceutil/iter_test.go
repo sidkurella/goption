@@ -11,9 +11,9 @@ func TestIter(t *testing.T) {
 	t.Run("list has elements", func(t *testing.T) {
 		list := []int{1, 2, 3}
 		iter := sliceutil.Iter(list)
-		first := option.Some[int]{Value: 1}
-		second := option.Some[int]{Value: 2}
-		third := option.Some[int]{Value: 3}
+		first := option.Some(1)
+		second := option.Some(2)
+		third := option.Some(3)
 
 		item := iter.Next()
 		if item != first {
@@ -30,7 +30,7 @@ func TestIter(t *testing.T) {
 			t.Fail()
 		}
 
-		end := option.Nothing[int]{}
+		end := option.Nothing[int]()
 		if iter.Next() != end {
 			t.Fail()
 		}
@@ -39,7 +39,7 @@ func TestIter(t *testing.T) {
 		list := []int{}
 		iter := sliceutil.Iter(list)
 
-		end := option.Nothing[int]{}
+		end := option.Nothing[int]()
 		if iter.Next() != end {
 			t.Fail()
 		}
@@ -50,9 +50,9 @@ func TestReverseIter(t *testing.T) {
 	t.Run("list has elements", func(t *testing.T) {
 		list := []int{1, 2, 3}
 		iter := sliceutil.ReverseIter(list)
-		first := option.Some[int]{Value: 3}
-		second := option.Some[int]{Value: 2}
-		third := option.Some[int]{Value: 1}
+		first := option.Some(3)
+		second := option.Some(2)
+		third := option.Some(1)
 
 		item := iter.Next()
 		if item != first {
@@ -69,7 +69,7 @@ func TestReverseIter(t *testing.T) {
 			t.Fail()
 		}
 
-		end := option.Nothing[int]{}
+		end := option.Nothing[int]()
 		if iter.Next() != end {
 			t.Fail()
 		}
@@ -78,7 +78,7 @@ func TestReverseIter(t *testing.T) {
 		list := []int{}
 		iter := sliceutil.ReverseIter(list)
 
-		end := option.Nothing[int]{}
+		end := option.Nothing[int]()
 		if iter.Next() != end {
 			t.Fail()
 		}
@@ -89,9 +89,9 @@ func TestPointerIter(t *testing.T) {
 	t.Run("list has elements", func(t *testing.T) {
 		list := []int{1, 2, 3}
 		iter := sliceutil.PointerIter(list)
-		first := option.Some[*int]{Value: &list[0]}
-		second := option.Some[*int]{Value: &list[1]}
-		third := option.Some[*int]{Value: &list[2]}
+		first := option.Some(&list[0])
+		second := option.Some(&list[1])
+		third := option.Some(&list[2])
 
 		item := iter.Next()
 		if item != first || *item.Unwrap() != 1 {
@@ -108,7 +108,7 @@ func TestPointerIter(t *testing.T) {
 			t.Fail()
 		}
 
-		end := option.Nothing[*int]{}
+		end := option.Nothing[*int]()
 		if iter.Next() != end {
 			t.Fail()
 		}
@@ -117,7 +117,7 @@ func TestPointerIter(t *testing.T) {
 		list := []int{}
 		iter := sliceutil.PointerIter(list)
 
-		end := option.Nothing[*int]{}
+		end := option.Nothing[*int]()
 		if iter.Next() != end {
 			t.Fail()
 		}
@@ -128,9 +128,9 @@ func TestReversePointerIter(t *testing.T) {
 	t.Run("list has elements", func(t *testing.T) {
 		list := []int{1, 2, 3}
 		iter := sliceutil.ReversePointerIter(list)
-		first := option.Some[*int]{Value: &list[2]}
-		second := option.Some[*int]{Value: &list[1]}
-		third := option.Some[*int]{Value: &list[0]}
+		first := option.Some(&list[2])
+		second := option.Some(&list[1])
+		third := option.Some(&list[0])
 
 		item := iter.Next()
 		if item != first || *item.Unwrap() != 3 {
@@ -147,7 +147,7 @@ func TestReversePointerIter(t *testing.T) {
 			t.Fail()
 		}
 
-		end := option.Nothing[*int]{}
+		end := option.Nothing[*int]()
 		if iter.Next() != end {
 			t.Fail()
 		}
@@ -156,7 +156,7 @@ func TestReversePointerIter(t *testing.T) {
 		list := []int{}
 		iter := sliceutil.ReversePointerIter(list)
 
-		end := option.Nothing[*int]{}
+		end := option.Nothing[*int]()
 		if iter.Next() != end {
 			t.Fail()
 		}

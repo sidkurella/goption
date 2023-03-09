@@ -20,5 +20,5 @@ func (t *takeIterator[T]) Next() option.Option[T] {
 		t.left--
 		return t.inner.Next()
 	}
-	return option.Nothing[T]{}
+	return option.Nothing[T]()
 }

@@ -85,17 +85,17 @@ func FoldRight[T any, A any](s []T, a A, f func(A, T) A) A {
 // Returns the first element of the slice. Returns Nothing if it is empty.
 func First[T any](s []T) option.Option[T] {
 	if len(s) > 0 {
-		return option.Some[T]{Value: s[0]}
+		return option.Some(s[0])
 	}
-	return option.Nothing[T]{}
+	return option.Nothing[T]()
 }
 
 // Returns the last element of the slice. Returns Nothing if it is empty.
 func Last[T any](s []T) option.Option[T] {
 	if len(s) > 0 {
-		return option.Some[T]{Value: s[len(s)-1]}
+		return option.Some(s[len(s)-1])
 	}
-	return option.Nothing[T]{}
+	return option.Nothing[T]()
 }
 
 // Returns if the slice `haystack` starts with the prefix `needle`.

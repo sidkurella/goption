@@ -84,9 +84,9 @@ func (m Map[K, V]) Insert(k K, v V) option.Option[V] {
 	val, ok := m.m[k]
 	m.m[k] = v
 	if ok {
-		return option.Some[V]{Value: val}
+		return option.Some(val)
 	}
-	return option.Nothing[V]{}
+	return option.Nothing[V]()
 }
 
 // Append adds the given key-value pairs to the map.
@@ -109,11 +109,11 @@ func (m Map[K, V]) TryInsert(k K, v V) either.Either[V, OccupiedError[K, V]] {
 	val, ok := m.m[k]
 	if !ok {
 		m.m[k] = v
-		return either.First[V, OccupiedError[K, V]]{Value: v}
+		return either.First[V, OccupiedError[K, V]](v)
 	}
-	return either.Second[V, OccupiedError[K, V]]{
-		Value: OccupiedError[K, V]{Key: k, Value: val},
-	}
+	return either.Second[V](
+		OccupiedError[K, V]{Key: k, Value: val},
+	)
 }
 
 // Remove removes a key from the map. If there was a value present at the key, it is returned.
@@ -121,18 +121,18 @@ func (m Map[K, V]) Remove(k K) option.Option[V] {
 	val, ok := m.m[k]
 	if ok {
 		delete(m.m, k)
-		return option.Some[V]{Value: val}
+		return option.Some(val)
 	}
-	return option.Nothing[V]{}
+	return option.Nothing[V]()
 }
 
 // Get returns the value for a given key. Returns Nothing if it does not exist.
 func (m Map[K, V]) Get(k K) option.Option[V] {
 	val, ok := m.m[k]
 	if ok {
-		return option.Some[V]{Value: val}
+		return option.Some(val)
 	}
-	return option.Nothing[V]{}
+	return option.Nothing[V]()
 }
 
 // Filter removes all entries from the map that do not satisfy the given predicate.

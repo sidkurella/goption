@@ -22,7 +22,7 @@ func IntersperseWith[T any](inner Iterator[T], f func() T) *intersperseWithItera
 func (i *intersperseWithIterator[T]) Next() option.Option[T] {
 	var ret option.Option[T]
 	if i.nextIsF {
-		ret = option.Some[T]{Value: i.f()}
+		ret = option.Some(i.f())
 	} else {
 		ret = i.inner.Next()
 	}

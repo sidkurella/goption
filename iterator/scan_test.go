@@ -16,7 +16,7 @@ func TestScan(t *testing.T) {
 	}
 	iter := iterator.Scan[int](i1, 1, func(state *int, t int) option.Option[string] {
 		*state = *state * t
-		return option.Some[string]{Value: strconv.Itoa(-*state)}
+		return option.Some(strconv.Itoa(-*state))
 	})
 	calls := iterator.Collect[string](iter)
 	if !reflect.DeepEqual(calls, expected) {

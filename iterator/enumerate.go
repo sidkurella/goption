@@ -24,14 +24,14 @@ func Enumerate[T any](iter Iterator[T]) *enumerateIterator[T] {
 func (e *enumerateIterator[T]) Next() option.Option[pair.Pair[int, T]] {
 	val, ok := e.inner.Next().Get()
 	if !ok {
-		return option.Nothing[pair.Pair[int, T]]{}
+		return option.Nothing[pair.Pair[int, T]]()
 	}
-	ret := option.Some[pair.Pair[int, T]]{
-		Value: pair.Pair[int, T]{
+	ret := option.Some(
+		pair.Pair[int, T]{
 			First:  e.i,
 			Second: val,
 		},
-	}
+	)
 	e.i++
 	return ret
 }

@@ -19,11 +19,11 @@ type rangeIterator[T numeric] struct {
 }
 
 func (r *rangeIterator[T]) Next() option.Option[T] {
-	var ret option.Option[T] = option.Nothing[T]{}
+	var ret option.Option[T] = option.Nothing[T]()
 	if (!r.backwards && r.current < r.end) ||
 		(r.backwards && r.current > r.end) ||
 		(r.current == r.end && r.includeEnd) {
-		ret = option.Some[T]{Value: r.current}
+		ret = option.Some(r.current)
 		r.current += r.step
 	}
 

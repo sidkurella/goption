@@ -19,15 +19,15 @@ func (m Map[K, V]) Iter() *mapIterator[K, V] {
 
 func (m *mapIterator[K, V]) Next() option.Option[Entry[K, V]] {
 	if !m.inner.Next() {
-		return option.Nothing[Entry[K, V]]{}
+		return option.Nothing[Entry[K, V]]()
 	}
 	k := m.inner.Key().Interface().(K)
 	v := m.inner.Value().Interface().(V)
 
-	return option.Some[Entry[K, V]]{
-		Value: Entry[K, V]{
+	return option.Some(
+		Entry[K, V]{
 			Key:   k,
 			Value: v,
 		},
-	}
+	)
 }

@@ -17,7 +17,7 @@ func Fuse[T any](inner Iterator[T]) *fuseIterator[T] {
 
 func (f *fuseIterator[T]) Next() option.Option[T] {
 	if f.returnNothing {
-		return option.Nothing[T]{}
+		return option.Nothing[T]()
 	}
 	ret := f.inner.Next()
 	f.returnNothing = ret.IsNothing()

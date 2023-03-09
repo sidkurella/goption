@@ -16,9 +16,9 @@ func TestMapWhile(t *testing.T) {
 	}
 	iter := iterator.MapWhile[int](i1, func(t int) option.Option[string] {
 		if t >= 3 {
-			return option.Nothing[string]{}
+			return option.Nothing[string]()
 		}
-		return option.Some[string]{Value: strconv.Itoa(t * 10)}
+		return option.Some(strconv.Itoa(t * 10))
 	})
 	calls := iterator.Collect[string](iter)
 	if !reflect.DeepEqual(calls, expected) {

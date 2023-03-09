@@ -20,9 +20,9 @@ func Iter(s string) *stringIter {
 
 func (s *stringIter) Next() option.Option[rune] {
 	if s.i >= len(s.s) {
-		return option.Nothing[rune]{}
+		return option.Nothing[rune]()
 	}
-	ret := option.Some[rune]{Value: s.s[s.i]}
+	ret := option.Some(s.s[s.i])
 	s.i++
 	return ret
 }
@@ -45,9 +45,9 @@ func ByteIter(s string) *stringByteIter {
 
 func (s *stringByteIter) Next() option.Option[byte] {
 	if s.i >= len(s.s) {
-		return option.Nothing[byte]{}
+		return option.Nothing[byte]()
 	}
-	ret := option.Some[byte]{Value: s.s[s.i]}
+	ret := option.Some(s.s[s.i])
 	s.i++
 	return ret
 }

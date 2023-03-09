@@ -24,10 +24,10 @@ func (s *skipWhileIterator[T]) Next() option.Option[T] {
 			val := item.Unwrap()
 			if !s.f(val) {
 				s.skipped = true
-				return option.Some[T]{Value: val}
+				return option.Some(val)
 			}
 		}
-		return option.Nothing[T]{}
+		return option.Nothing[T]()
 	}
 	return s.inner.Next()
 }

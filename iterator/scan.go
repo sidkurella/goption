@@ -21,11 +21,11 @@ func Scan[T any, S any, U any](inner Iterator[T], initial S, f func(*S, T) optio
 
 func (s *scanIterator[T, S, U]) Next() option.Option[U] {
 	return option.Match(s.inner.Next(),
-		func(v option.Some[T]) option.Option[U] {
-			return s.f(s.state, v.Value)
+		func(t T) option.Option[U] {
+			return s.f(s.state, t)
 		},
-		func(_ option.Nothing[T]) option.Option[U] {
-			return option.Nothing[U]{}
+		func() option.Option[U] {
+			return option.Nothing[U]()
 		},
 	)
 }
