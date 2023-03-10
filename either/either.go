@@ -6,7 +6,7 @@ import (
 	"github.com/sidkurella/goption/option"
 )
 
-// Implements Monad[Either[F1, E], Either[F2, E], F1].
+// Implements Monad[Either[F1, S], Either[F2, S], F1].
 type EitherMonad[F1 any, S any, F2 any] struct {
 }
 
@@ -338,7 +338,7 @@ func FirstOrElse[T any, E any](opt option.Option[T], f func() E) Either[T, E] {
 	)
 }
 
-// Returns First[r] if err == nil.
+// Returns First[value] if err == nil.
 // Returns Second[err] if err != nil.
 func From[T any](value T, err error) Either[T, error] {
 	if err != nil {

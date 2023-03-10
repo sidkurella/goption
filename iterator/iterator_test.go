@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sidkurella/goption/either"
 	"github.com/sidkurella/goption/iterator"
 	"github.com/sidkurella/goption/option"
 	"github.com/sidkurella/goption/pair"
+	"github.com/sidkurella/goption/result"
 )
 
 type fakeCollection struct {
@@ -75,7 +75,7 @@ func TestAdvanceBy(t *testing.T) {
 		t.Fail()
 	}
 	res = iterator.AdvanceBy[int](iter, 3)
-	if res.UnwrapSecond() != uint64(1) {
+	if res.UnwrapErr() != uint64(1) {
 		t.Fail()
 	}
 }
@@ -268,14 +268,14 @@ func TestTryFold(t *testing.T) {
 			elements: []int{1, 2, 3, 4, 5},
 		}
 		ret := iterator.TryFold[int](iter, 1,
-			func(a int, t int) either.Either[int, int] {
+			func(a int, t int) result.Result[int, int] {
 				if t < 4 {
-					return either.First[int, int](a * t)
+					return result.Ok[int, int](a * t)
 				}
-				return either.Second[int](a)
+				return result.Err[int](a)
 			},
 		)
-		if ret.UnwrapSecond() != 6 {
+		if ret.UnwrapErr() != 6 {
 			t.Fail()
 		}
 		if iter.Next().Unwrap() != 5 { // Iterator should be at the next non-failed element.
@@ -287,8 +287,8 @@ func TestTryFold(t *testing.T) {
 			elements: []int{1, 2, 3, 4, 5},
 		}
 		ret := iterator.TryFold[int](iter, 1,
-			func(a int, t int) either.Either[int, int] {
-				return either.First[int, int](a * t)
+			func(a int, t int) result.Result[int, int] {
+				return result.Ok[int, int](a * t)
 			},
 		)
 		if ret.Unwrap() != 120 {
