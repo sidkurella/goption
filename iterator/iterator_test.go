@@ -8,6 +8,7 @@ import (
 	"github.com/sidkurella/goption/option"
 	"github.com/sidkurella/goption/pair"
 	"github.com/sidkurella/goption/result"
+	"github.com/sidkurella/goption/sliceutil"
 )
 
 type fakeCollection struct {
@@ -532,6 +533,44 @@ func TestCollectInto(t *testing.T) {
 		}
 		res := iterator.Collect[int](iter)
 		if !reflect.DeepEqual(res, []int{}) {
+			t.Fail()
+		}
+	})
+}
+
+func TestTryCollect(t *testing.T) {
+	t.Run("non-empty, no errors", func(t *testing.T) {
+		elems := []result.Result[int, string]{
+			result.Ok[int, string](2),
+			result.Ok[int, string](1),
+			result.Ok[int, string](5),
+			result.Ok[int, string](3),
+			result.Ok[int, string](4),
+		}
+		expected := result.Ok[[]int, string]([]int{2, 1, 5, 3, 4})
+		res := iterator.TryCollect[int, string](sliceutil.Iter(elems))
+		if !reflect.DeepEqual(res, expected) {
+			t.Fail()
+		}
+	})
+	t.Run("non-empty, error", func(t *testing.T) {
+		elems := []result.Result[int, string]{
+			result.Ok[int, string](2),
+			result.Ok[int, string](1),
+			result.Ok[int, string](5),
+			result.Err[int]("failure"),
+			result.Ok[int, string](4),
+		}
+		expected := result.Err[[]int, string]("failure")
+		res := iterator.TryCollect[int, string](sliceutil.Iter(elems))
+		if !reflect.DeepEqual(res, expected) {
+			t.Errorf("got %#v, expected %#v", res, expected)
+		}
+	})
+	t.Run("empty", func(t *testing.T) {
+		elems := []result.Result[int, string]{}
+		res := iterator.TryCollect[int, string](sliceutil.Iter(elems))
+		if !reflect.DeepEqual(res, result.Ok[[]int, string]([]int{})) {
 			t.Fail()
 		}
 	})

@@ -212,6 +212,16 @@ func CollectInto[T any, C Collection[T]](iter Iterator[T], collection C) C {
 	return collection
 }
 
+// TryCollect attempts to collect an iterator of Result[T, E] into []T.
+// It short-circuits upon reaching the first Err variant, instead returning Err[E].
+func TryCollect[T any, E any](iter Iterator[result.Result[T, E]]) result.Result[[]T, E] {
+	return TryFold(iter, []T{}, func(a []T, res result.Result[T, E]) result.Result[[]T, E] {
+		return result.AndThen(res, func(t T) result.Result[[]T, E] {
+			return result.Ok[[]T, E](append(a, t))
+		})
+	})
+}
+
 // Consumes an iterator, producing two lists from it.
 // The first contains all the elements the predicate returned true for, and the second, false.
 func Partition[T any](iter Iterator[T], f func(T) bool) ([]T, []T) {
