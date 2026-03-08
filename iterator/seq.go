@@ -45,7 +45,7 @@ func ToSeq[T any](it Iterator[T]) iter.Seq[T] {
 	}
 }
 
-// FromSeq converts an iter.Seq[T] to a CloseableIterator[T].
+// FromSeq converts an iter.Seq[T] to a seqIterator[T].
 // The sequence will be pulled from lazily as Next() is called.
 //
 // The returned iterator holds resources from iter.Pull. It is intended that
@@ -65,7 +65,7 @@ func ToSeq[T any](it Iterator[T]) iter.Seq[T] {
 //	// Safe to chain into adapters after deferring Close
 //	mapped := iterator.Map(it, func(x int) int { return x * 2 })
 //	result := iterator.Collect(mapped)
-func FromSeq[T any](seq iter.Seq[T]) CloseableIterator[T] {
+func FromSeq[T any](seq iter.Seq[T]) *seqIterator[T] {
 	next, stop := iter.Pull(seq)
 	return &seqIterator[T]{
 		next: next,
@@ -122,7 +122,7 @@ func ToSeq2[K any, V any](it Iterator[pair.Pair[K, V]]) iter.Seq2[K, V] {
 	}
 }
 
-// FromSeq2 converts an iter.Seq2[K, V] to a CloseableIterator[pair.Pair[K, V]].
+// FromSeq2 converts an iter.Seq2[K, V] to a seq2Iterator[K, V].
 // The sequence will be pulled from lazily as Next() is called.
 //
 // The returned iterator holds resources from iter.Pull2. It is intended that
@@ -142,7 +142,7 @@ func ToSeq2[K any, V any](it Iterator[pair.Pair[K, V]]) iter.Seq2[K, V] {
 //	// Safe to chain into adapters after deferring Close
 //	filtered := iterator.Filter(it, func(p pair.Pair[K, V]) bool { return p.First != "" })
 //	result := iterator.Collect(filtered)
-func FromSeq2[K any, V any](seq iter.Seq2[K, V]) CloseableIterator[pair.Pair[K, V]] {
+func FromSeq2[K any, V any](seq iter.Seq2[K, V]) *seq2Iterator[K, V] {
 	next, stop := iter.Pull2(seq)
 	return &seq2Iterator[K, V]{
 		next: next,
