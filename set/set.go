@@ -4,6 +4,7 @@ import (
 	"github.com/sidkurella/goption/iterator"
 	"github.com/sidkurella/goption/maputil"
 	"github.com/sidkurella/goption/option"
+	"github.com/sidkurella/goption/pair"
 	"github.com/sidkurella/goption/sliceutil"
 )
 
@@ -143,6 +144,17 @@ func (s Set[K]) SymmetricDifference(s2 Set[K]) Set[K] {
 		}
 	})
 	return ret
+}
+
+// Equal returns true if the sets contain exactly the same elements.
+func (s Set[K]) Equal(s2 Set[K]) bool {
+	return s.Len() == s2.Len() && s.IsSubset(s2)
+}
+
+// PairedDifference returns the asymmetric differences partitioned by source set.
+// First contains elements in s but not s2. Second contains elements in s2 but not s.
+func (s Set[K]) PairedDifference(s2 Set[K]) pair.Pair[Set[K], Set[K]] {
+	return pair.From(s.Difference(s2), s2.Difference(s))
 }
 
 // IsDisjoint returns if the two sets have no common elements; that is, their intersection is empty.

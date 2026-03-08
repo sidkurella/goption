@@ -8,6 +8,7 @@ import (
 
 	"github.com/sidkurella/goption/iterator"
 	"github.com/sidkurella/goption/option"
+	"github.com/sidkurella/goption/pair"
 	"github.com/sidkurella/goption/set"
 	"github.com/sidkurella/goption/sliceutil"
 )
@@ -261,6 +262,112 @@ func TestSymmetricDifference(t *testing.T) {
 	if !reflect.DeepEqual(s.SymmetricDifference(s2), expected) {
 		t.Fail()
 	}
+}
+
+func TestEqual(t *testing.T) {
+	t.Run("equal", func(t *testing.T) {
+		s := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+			3: {},
+		})
+		s2 := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+			3: {},
+		})
+		if !s.Equal(s2) {
+			t.Fail()
+		}
+	})
+	t.Run("not equal", func(t *testing.T) {
+		s := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+			3: {},
+		})
+		s2 := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+			4: {},
+		})
+		if s.Equal(s2) {
+			t.Fail()
+		}
+	})
+	t.Run("both empty", func(t *testing.T) {
+		s := set.New[int]()
+		s2 := set.New[int]()
+		if !s.Equal(s2) {
+			t.Fail()
+		}
+	})
+}
+
+func TestPairedDifference(t *testing.T) {
+	t.Run("overlapping sets", func(t *testing.T) {
+		s := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+			3: {},
+		})
+		s2 := set.From(map[int]struct{}{
+			2: {},
+			3: {},
+			4: {},
+		})
+		out := s.PairedDifference(s2)
+		expected := pair.From(
+			set.From(map[int]struct{}{
+				1: {},
+			}),
+			set.From(map[int]struct{}{
+				4: {},
+			}),
+		)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+	})
+	t.Run("disjoint sets", func(t *testing.T) {
+		s := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+		})
+		s2 := set.From(map[int]struct{}{
+			3: {},
+			4: {},
+		})
+		out := s.PairedDifference(s2)
+		expected := pair.From(
+			set.From(map[int]struct{}{
+				1: {},
+				2: {},
+			}),
+			set.From(map[int]struct{}{
+				3: {},
+				4: {},
+			}),
+		)
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+	})
+	t.Run("equal sets", func(t *testing.T) {
+		s := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+		})
+		s2 := set.From(map[int]struct{}{
+			1: {},
+			2: {},
+		})
+		out := s.PairedDifference(s2)
+		expected := pair.From(set.New[int](), set.New[int]())
+		if !reflect.DeepEqual(out, expected) {
+			t.Fail()
+		}
+	})
 }
 
 func TestIsDisjoint(t *testing.T) {
