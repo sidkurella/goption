@@ -161,3 +161,34 @@ func TestOption_JSONInStruct(t *testing.T) {
 		t.Fatalf("absent got %v, expected Nothing", c.Absent)
 	}
 }
+
+func TestOption_JSONMissingKeySemantics(t *testing.T) {
+	t.Run("missing key on fresh struct leaves zero value", func(t *testing.T) {
+		var c jsonContainer
+		if err := json.Unmarshal([]byte(`{"present":2}`), &c); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if c.Present != option.Some(2) {
+			t.Fatalf("present got %v, expected Some(2)", c.Present)
+		}
+		if !c.Absent.IsNothing() {
+			t.Fatalf("absent got %v, expected Nothing", c.Absent)
+		}
+	})
+
+	t.Run("missing key on reused struct preserves previous value", func(t *testing.T) {
+		c := jsonContainer{
+			Present: option.Some(1),
+			Absent:  option.Some(99),
+		}
+		if err := json.Unmarshal([]byte(`{"present":3}`), &c); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if c.Present != option.Some(3) {
+			t.Fatalf("present got %v, expected Some(3)", c.Present)
+		}
+		if c.Absent != option.Some(99) {
+			t.Fatalf("absent got %v, expected Some(99)", c.Absent)
+		}
+	})
+}
