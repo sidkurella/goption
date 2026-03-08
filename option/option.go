@@ -259,6 +259,15 @@ func From[T any](val T, ok bool) Option[T] {
 	return Nothing[T]()
 }
 
+// Returns an option from the provided pointer.
+// Returns Nothing if p is nil.
+func FromPointer[T any](p *T) Option[T] {
+	if p == nil {
+		return Nothing[T]()
+	}
+	return Some(*p)
+}
+
 // Returns an option from the provided value and error.
 // Returns Some[T] if the error is nil.
 // Returns Nothing if the error is not nil.
