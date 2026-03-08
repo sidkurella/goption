@@ -491,6 +491,24 @@ func TestOption_From(t *testing.T) {
 	})
 }
 
+func TestOption_FromPointer(t *testing.T) {
+	t.Run("non-nil", func(t *testing.T) {
+		val := 3
+		res := option.FromPointer(&val)
+		expected := option.Some(3)
+		if res != expected {
+			t.Fail()
+		}
+	})
+	t.Run("nil", func(t *testing.T) {
+		res := option.FromPointer[int](nil)
+		expected := option.Nothing[int]()
+		if res != expected {
+			t.Fail()
+		}
+	})
+}
+
 func TestOption_FromError(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		res := option.FromError(3, nil)
