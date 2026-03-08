@@ -2,24 +2,37 @@ name: Go
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
-
-  build:
+  lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: "1.23"
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.24.x"
 
-    - name: Build
-      run: go build -v ./...
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.11.1
+          args: ./...
 
-    - name: Test
-      run: go test -v ./...
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Test
+        run: go test -race ./...

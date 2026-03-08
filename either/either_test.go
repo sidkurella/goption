@@ -11,13 +11,13 @@ import (
 
 func TestEither_IsFirst(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		if !val.IsFirst() {
 			t.Fail()
 		}
 	})
 	t.Run("Second", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("second val")
+		val := either.Second[int]("second val")
 		if val.IsFirst() {
 			t.Fail()
 		}
@@ -26,13 +26,13 @@ func TestEither_IsFirst(t *testing.T) {
 
 func TestEither_IsSecond(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		if val.IsSecond() {
 			t.Fail()
 		}
 	})
 	t.Run("Second", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("second val")
+		val := either.Second[int]("second val")
 		if !val.IsSecond() {
 			t.Fail()
 		}
@@ -41,19 +41,19 @@ func TestEither_IsSecond(t *testing.T) {
 
 func TestEither_IsFirstAnd(t *testing.T) {
 	t.Run("First, passes predicate", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		if !val.IsFirstAnd(func(t *int) bool { return (*t) == 3 }) {
 			t.Fail()
 		}
 	})
 	t.Run("First, fails predicate", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		if val.IsFirstAnd(func(t *int) bool { return (*t) == 4 }) {
 			t.Fail()
 		}
 	})
 	t.Run("Second", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("second val")
+		val := either.Second[int]("second val")
 		if val.IsFirstAnd(func(t *int) bool { return (*t) == 4 }) {
 			t.Fail()
 		}
@@ -62,19 +62,19 @@ func TestEither_IsFirstAnd(t *testing.T) {
 
 func TestEither_IsSecondAnd(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		if val.IsSecondAnd(func(t *string) bool { return (*t) == "hello" }) {
 			t.Fail()
 		}
 	})
 	t.Run("Second, passes predicate", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		if !val.IsSecondAnd(func(t *string) bool { return (*t) == "hello" }) {
 			t.Fail()
 		}
 	})
 	t.Run("Second, fails predicate", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("world")
+		val := either.Second[int]("world")
 		if val.IsSecondAnd(func(t *string) bool { return (*t) == "hello" }) {
 			t.Fail()
 		}
@@ -83,14 +83,14 @@ func TestEither_IsSecondAnd(t *testing.T) {
 
 func TestEither_First(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		expected := option.Some(3)
 		if val.First() != expected {
 			t.Fail()
 		}
 	})
 	t.Run("Second", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		expected := option.Nothing[int]()
 		if val.First() != expected {
 			t.Fail()
@@ -100,14 +100,14 @@ func TestEither_First(t *testing.T) {
 
 func TestEither_Second(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		expected := option.Nothing[string]()
 		if val.Second() != expected {
 			t.Fail()
 		}
 	})
 	t.Run("Second", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		expected := option.Some("hello")
 		if val.Second() != expected {
 			t.Fail()
@@ -117,7 +117,7 @@ func TestEither_Second(t *testing.T) {
 
 func TestEither_Unwrap(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		expected := 3
 		if val.Unwrap() != expected {
 			t.Fail()
@@ -130,21 +130,21 @@ func TestEither_Unwrap(t *testing.T) {
 			}
 		}()
 
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		_ = val.Unwrap()
 	})
 }
 
 func TestEither_UnwrapOr(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		expected := 3
 		if val.UnwrapOr(4) != expected {
 			t.Fail()
 		}
 	})
 	t.Run("Second", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		expected := 4
 		if val.UnwrapOr(4) != expected {
 			t.Fail()
@@ -155,7 +155,7 @@ func TestEither_UnwrapOr(t *testing.T) {
 func TestEither_UnwrapOrElse(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
 		calls := 0
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		expected := 3
 		if val.UnwrapOrElse(func(_ string) int {
 			calls++
@@ -166,7 +166,7 @@ func TestEither_UnwrapOrElse(t *testing.T) {
 	})
 	t.Run("Second", func(t *testing.T) {
 		calls := 0
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		expected := 5
 		if val.UnwrapOrElse(func(s string) int {
 			calls++
@@ -185,11 +185,11 @@ func TestEither_UnwrapSecond(t *testing.T) {
 			}
 		}()
 
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		_ = val.UnwrapSecond()
 	})
 	t.Run("Second", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		expected := "hello"
 		if val.UnwrapSecond() != expected {
 			t.Fail()
@@ -199,14 +199,14 @@ func TestEither_UnwrapSecond(t *testing.T) {
 
 func TestEither_UnwrapSecondOr(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		expected := "world"
 		if val.UnwrapSecondOr("world") != expected {
 			t.Fail()
 		}
 	})
 	t.Run("Second", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		expected := "hello"
 		if val.UnwrapSecondOr("world") != expected {
 			t.Fail()
@@ -217,7 +217,7 @@ func TestEither_UnwrapSecondOr(t *testing.T) {
 func TestEither_UnwrapSecondOrElse(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
 		calls := 0
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		expected := "3"
 		if val.UnwrapSecondOrElse(func(i int) string {
 			calls++
@@ -228,7 +228,7 @@ func TestEither_UnwrapSecondOrElse(t *testing.T) {
 	})
 	t.Run("Second", func(t *testing.T) {
 		calls := 0
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		expected := "hello"
 		if val.UnwrapSecondOrElse(func(i int) string {
 			calls++
@@ -241,7 +241,7 @@ func TestEither_UnwrapSecondOrElse(t *testing.T) {
 
 func TestEither_Expect(t *testing.T) {
 	t.Run("First", func(t *testing.T) {
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		expected := 3
 		if val.Expect("don't panic") != expected {
 			t.Fail()
@@ -258,7 +258,7 @@ func TestEither_Expect(t *testing.T) {
 			}
 		}()
 
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		_ = val.Expect(msg)
 	})
 }
@@ -275,11 +275,11 @@ func TestEither_ExpectSecond(t *testing.T) {
 			}
 		}()
 
-		var val either.Either[int, string] = either.First[int, string](3)
+		val := either.First[int, string](3)
 		_ = val.ExpectSecond(msg)
 	})
 	t.Run("Second", func(t *testing.T) {
-		var val either.Either[int, string] = either.Second[int]("hello")
+		val := either.Second[int]("hello")
 		expected := "hello"
 		if val.ExpectSecond("don't panic") != expected {
 			t.Fail()
