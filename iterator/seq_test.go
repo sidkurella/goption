@@ -170,7 +170,7 @@ func TestToSeq2(t *testing.T) {
 		}
 		seq := iterator.ToSeq2(it)
 		var keys []int
-		for k, _ := range seq {
+		for k := range seq {
 			keys = append(keys, k)
 			if k == 2 {
 				break

@@ -192,8 +192,20 @@ func main() {
 
 ## Development
 
+Run lint:
+
+```bash
+golangci-lint run ./...
+```
+
 Run all tests:
 
 ```bash
 go test ./...
+```
+
+Run race tests:
+
+```bash
+go test -race ./...
 ```

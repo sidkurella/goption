@@ -11,13 +11,13 @@ import (
 
 func TestResult_IsOk(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		if !val.IsOk() {
 			t.Fail()
 		}
 	})
 	t.Run("Err", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("err val")
+		val := result.Err[int]("err val")
 		if val.IsOk() {
 			t.Fail()
 		}
@@ -26,13 +26,13 @@ func TestResult_IsOk(t *testing.T) {
 
 func TestResult_IsErr(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		if val.IsErr() {
 			t.Fail()
 		}
 	})
 	t.Run("Err", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("err val")
+		val := result.Err[int]("err val")
 		if !val.IsErr() {
 			t.Fail()
 		}
@@ -41,19 +41,19 @@ func TestResult_IsErr(t *testing.T) {
 
 func TestResult_IsOkAnd(t *testing.T) {
 	t.Run("Ok, passes predicate", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		if !val.IsOkAnd(func(t *int) bool { return (*t) == 3 }) {
 			t.Fail()
 		}
 	})
 	t.Run("Ok, fails predicate", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		if val.IsOkAnd(func(t *int) bool { return (*t) == 4 }) {
 			t.Fail()
 		}
 	})
 	t.Run("Err", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("err val")
+		val := result.Err[int]("err val")
 		if val.IsOkAnd(func(t *int) bool { return (*t) == 4 }) {
 			t.Fail()
 		}
@@ -62,19 +62,19 @@ func TestResult_IsOkAnd(t *testing.T) {
 
 func TestResult_IsErrAnd(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		if val.IsErrAnd(func(t *string) bool { return (*t) == "hello" }) {
 			t.Fail()
 		}
 	})
 	t.Run("Err, passes predicate", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		if !val.IsErrAnd(func(t *string) bool { return (*t) == "hello" }) {
 			t.Fail()
 		}
 	})
 	t.Run("Err, fails predicate", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("world")
+		val := result.Err[int]("world")
 		if val.IsErrAnd(func(t *string) bool { return (*t) == "hello" }) {
 			t.Fail()
 		}
@@ -83,14 +83,14 @@ func TestResult_IsErrAnd(t *testing.T) {
 
 func TestResult_Ok(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		expected := option.Some(3)
 		if val.Ok() != expected {
 			t.Fail()
 		}
 	})
 	t.Run("Err", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		expected := option.Nothing[int]()
 		if val.Ok() != expected {
 			t.Fail()
@@ -100,14 +100,14 @@ func TestResult_Ok(t *testing.T) {
 
 func TestResult_Err(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		expected := option.Nothing[string]()
 		if val.Err() != expected {
 			t.Fail()
 		}
 	})
 	t.Run("Err", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		expected := option.Some("hello")
 		if val.Err() != expected {
 			t.Fail()
@@ -117,7 +117,7 @@ func TestResult_Err(t *testing.T) {
 
 func TestResult_Unwrap(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		expected := 3
 		if val.Unwrap() != expected {
 			t.Fail()
@@ -130,21 +130,21 @@ func TestResult_Unwrap(t *testing.T) {
 			}
 		}()
 
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		_ = val.Unwrap()
 	})
 }
 
 func TestResult_UnwrapOr(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		expected := 3
 		if val.UnwrapOr(4) != expected {
 			t.Fail()
 		}
 	})
 	t.Run("Err", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		expected := 4
 		if val.UnwrapOr(4) != expected {
 			t.Fail()
@@ -155,7 +155,7 @@ func TestResult_UnwrapOr(t *testing.T) {
 func TestResult_UnwrapOrElse(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
 		calls := 0
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		expected := 3
 		if val.UnwrapOrElse(func(_ string) int {
 			calls++
@@ -166,7 +166,7 @@ func TestResult_UnwrapOrElse(t *testing.T) {
 	})
 	t.Run("Err", func(t *testing.T) {
 		calls := 0
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		expected := 5
 		if val.UnwrapOrElse(func(s string) int {
 			calls++
@@ -185,11 +185,11 @@ func TestResult_UnwrapErr(t *testing.T) {
 			}
 		}()
 
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		_ = val.UnwrapErr()
 	})
 	t.Run("Err", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		expected := "hello"
 		if val.UnwrapErr() != expected {
 			t.Fail()
@@ -199,14 +199,14 @@ func TestResult_UnwrapErr(t *testing.T) {
 
 func TestResult_UnwrapErrOr(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		expected := "world"
 		if val.UnwrapErrOr("world") != expected {
 			t.Fail()
 		}
 	})
 	t.Run("Err", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		expected := "hello"
 		if val.UnwrapErrOr("world") != expected {
 			t.Fail()
@@ -217,7 +217,7 @@ func TestResult_UnwrapErrOr(t *testing.T) {
 func TestResult_UnwrapErrOrElse(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
 		calls := 0
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		expected := "3"
 		if val.UnwrapErrOrElse(func(i int) string {
 			calls++
@@ -228,7 +228,7 @@ func TestResult_UnwrapErrOrElse(t *testing.T) {
 	})
 	t.Run("Err", func(t *testing.T) {
 		calls := 0
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		expected := "hello"
 		if val.UnwrapErrOrElse(func(i int) string {
 			calls++
@@ -241,7 +241,7 @@ func TestResult_UnwrapErrOrElse(t *testing.T) {
 
 func TestResult_Expect(t *testing.T) {
 	t.Run("Ok", func(t *testing.T) {
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		expected := 3
 		if val.Expect("don't panic") != expected {
 			t.Fail()
@@ -258,7 +258,7 @@ func TestResult_Expect(t *testing.T) {
 			}
 		}()
 
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		_ = val.Expect(msg)
 	})
 }
@@ -275,11 +275,11 @@ func TestResult_ExpectErr(t *testing.T) {
 			}
 		}()
 
-		var val result.Result[int, string] = result.Ok[int, string](3)
+		val := result.Ok[int, string](3)
 		_ = val.ExpectErr(msg)
 	})
 	t.Run("Err", func(t *testing.T) {
-		var val result.Result[int, string] = result.Err[int]("hello")
+		val := result.Err[int]("hello")
 		expected := "hello"
 		if val.ExpectErr("don't panic") != expected {
 			t.Fail()
