@@ -101,6 +101,14 @@ func (o Option[T]) Get() (T, bool) {
 	return o.value, o.IsSome()
 }
 
+// Returns a pointer to the value contained by the option. Returns nil if it is Nothing.
+func (o Option[T]) ToPointer() *T {
+	if o.IsSome() {
+		return &o.value // Since the option is passed by value, there's no mutability concern here.
+	}
+	return nil
+}
+
 // Returns if the option contains a value and the value matches the given predicate.
 func (o Option[T]) IsSomeAnd(pred func(*T) bool) bool {
 	return o.IsSome() && pred(&o.value)
