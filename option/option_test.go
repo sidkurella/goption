@@ -525,3 +525,33 @@ func TestOption_FromError(t *testing.T) {
 		}
 	})
 }
+
+func TestOption_ToPointer(t *testing.T) {
+	t.Run("Some", func(t *testing.T) {
+		opt := option.Some(3)
+		res := opt.ToPointer()
+		expected := 3
+		if res == nil || *res != expected {
+			t.Fail()
+		}
+	})
+	t.Run("Nothing", func(t *testing.T) {
+		opt := option.Nothing[int]()
+		res := opt.ToPointer()
+		if res != nil {
+			t.Fail()
+		}
+	})
+	t.Run("modifying pointer does not modify option", func(t *testing.T) {
+		opt := option.Some(3)
+		res := opt.ToPointer()
+		if res == nil {
+			t.Fatalf("Expected non-nil pointer")
+		}
+		*res = 4
+		expectedOpt := option.Some(3)
+		if opt != expectedOpt {
+			t.Fail()
+		}
+	})
+}
