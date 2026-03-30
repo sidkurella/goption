@@ -1,10 +1,11 @@
 package iterator
 
 import (
+	"cmp"
+
 	"github.com/sidkurella/goption/option"
 	"github.com/sidkurella/goption/pair"
 	"github.com/sidkurella/goption/result"
-	"golang.org/x/exp/constraints"
 )
 
 // Iterator returns items via successive Next calls until it has run out.
@@ -151,7 +152,7 @@ func Last[T any](iter Iterator[T]) option.Option[T] {
 // Max returns the maximum element of the iterator.
 // Returns the last element if multiple elements are equally maximal.
 // Returns Nothing if the iterator is empty.
-func Max[T constraints.Ordered](iter Iterator[T]) option.Option[T] {
+func Max[T cmp.Ordered](iter Iterator[T]) option.Option[T] {
 	return MaxBy(iter, func(t1 T, t2 T) bool {
 		return t1 < t2
 	})
@@ -176,7 +177,7 @@ func MaxBy[T any](iter Iterator[T], less func(T, T) bool) option.Option[T] {
 // Min returns the minimum element of the iterator.
 // Returns the first element if multiple elements are equally minimal.
 // Returns Nothing if the iterator is empty.
-func Min[T constraints.Ordered](iter Iterator[T]) option.Option[T] {
+func Min[T cmp.Ordered](iter Iterator[T]) option.Option[T] {
 	return MinBy(iter, func(t1 T, t2 T) bool {
 		return t1 < t2
 	})
